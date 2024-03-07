@@ -1,0 +1,25 @@
+batch_size: 32
+epoch: 3
+learning_rate: 0.00055244
+step_size: 5
+gama: 0.6
+gpu: 1
+num_point: 1024
+optimizer: Adam
+weight_decay: 1e-5
+normal: False
+sequential: True
+num_class: 9
+experiment_folder: './'
+dataset: ${experiment_folder}data/
+input_dim: 4
+defaults:
+  - model: Hengshuang
+
+hydra:
+  run:
+    dir: ${experiment_folder}log/
+
+  sweep:
+    dir: ${experiment_folder}log/cls
+    subdir: ${model.name}

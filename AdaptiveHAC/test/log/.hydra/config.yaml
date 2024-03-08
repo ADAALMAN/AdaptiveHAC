@@ -15,6 +15,6 @@ weight_decay: 1.0e-05
 normal: false
 sequential: true
 num_class: 9
-experiment_folder: ./
+experiment_folder: test/
 dataset: ${experiment_folder}data/
 input_dim: 4

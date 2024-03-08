@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from ...pointnet_util import PointNetFeaturePropagation, PointNetSetAbstraction
-from .transformer import TransformerBlock
+from AdaptiveHAC.pointTransformer.pointnet_util import PointNetFeaturePropagation, PointNetSetAbstraction
+from AdaptiveHAC.pointTransformer.models.Hengshuang.transformer import TransformerBlock
 
 
 class TransitionDown(nn.Module):

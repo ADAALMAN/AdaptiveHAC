@@ -124,13 +124,13 @@ hydra:
         exclude_keys: []
   runtime:
     version: 1.1.1
-    cwd: C:\Users\adaal\Documents\GitHub\adaptive-hac\pointTransformer
+    cwd: C:\Users\adaal\Documents\GitHub\AdaptiveHAC\AdaptiveHAC
     config_sources:
     - path: hydra.conf
       schema: pkg
       provider: hydra
-    - path: C:\Users\adaal\Documents\GitHub\adaptive-hac\pointTransformer\config
-      schema: file
+    - path: pointTransformer.config
+      schema: pkg
       provider: main
     - path: ''
       schema: structured

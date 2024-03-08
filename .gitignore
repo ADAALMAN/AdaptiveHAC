@@ -8,6 +8,8 @@ __pycache__/
 #folders
 AdaptiveHAC/data/*
 AdaptiveHAC/log/*
+AdaptiveHAC/pointTransformer/test/data/*
+AdaptiveHAC/pointTransformer/test/log/*
 *.pth
 *.pt
 

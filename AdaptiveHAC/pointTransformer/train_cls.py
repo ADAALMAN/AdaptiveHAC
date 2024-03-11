@@ -2,13 +2,13 @@
 sourcr: https://github.com/POSTECH-CVLab/point-transformer
 modified by zhongyuan
 '''
-from .dataset import ModelNetDataLoader
+from AdaptiveHAC.pointTransformer.dataset import ModelNetDataLoader
 import numpy as np
 import os
 import torch
 import logging
 from tqdm import tqdm
-from . import provider
+from AdaptiveHAC.pointTransformer import provider
 import importlib
 import shutil
 import hydra
@@ -41,7 +41,7 @@ def test(model, loader, num_class): #num_class should change !!!
     return instance_acc, class_acc
 
 
-@hydra.main(config_path='config', config_name='cls')
+@hydra.main(config_path='config', config_name='cls', version_base='1.1')
 def main(args):
     omegaconf.OmegaConf.set_struct(args, False)
 
@@ -50,12 +50,11 @@ def main(args):
     logger = logging.getLogger(__name__)
 
     
-
+    print(args)
     '''DATA LOADING'''
     logger.info('Load dataset ...')
     dataset = args.dataset
     DATA_PATH = hydra.utils.to_absolute_path(dataset)
-
     TRAIN_DATASET = ModelNetDataLoader(root=DATA_PATH, npoint=args.num_point, split='train')
     TEST_DATASET = ModelNetDataLoader(root=DATA_PATH, npoint=args.num_point, split='test')
     trainDataLoader = torch.utils.data.DataLoader(TRAIN_DATASET, batch_size=args.batch_size, shuffle=True, num_workers=4)
@@ -109,7 +108,6 @@ def main(args):
 
     for epoch in range(start_epoch,args.epoch):
         logger.info('Epoch %d (%d/%s):' % (global_epoch + 1, epoch + 1, args.epoch))
-        
         classifier.train()
         for batch_id, data in tqdm(enumerate(trainDataLoader, 0), total=len(trainDataLoader), smoothing=0.9):
             points, target = data

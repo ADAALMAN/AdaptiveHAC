@@ -10,13 +10,17 @@ weight_decay: 1e-5
 normal: False
 sequential: True
 num_class: 9
-experiment_folder: 'pointTransformer/test/'
+experiment_folder: 'test/'
 dataset: ${experiment_folder}data/
 input_dim: 4
 defaults:
+  - _self_
   - model: Hengshuang
 
 hydra:
+  job:
+    chdir: True
+
   run:
     dir: ${experiment_folder}log/
 

@@ -9,7 +9,6 @@ class ModelNetDataLoader(Dataset):
         self.root = root
         self.npoints = npoint
         self.catfile = os.path.join(self.root, 'class_names.txt')
-        print(self.root)
         self.cat = [line.rstrip() for line in open(self.catfile)]   # class names
         print(self.cat) #['boxing', 'jump', 'jack', 'squats', 'walk']
 

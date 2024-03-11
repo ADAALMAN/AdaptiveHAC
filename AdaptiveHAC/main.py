@@ -1,7 +1,11 @@
 import matlab.engine
 import numpy as np
 
-from pointTransformer import train_cls
+from AdaptiveHAC.pointTransformer import train_cls
+
+import os 
+
+os.environ['HYDRA_FULL_ERROR'] = '1'
 """ eng = matlab.engine.start_matlab()
 eng.addpath('processing')
 eng.addpath('segmentation')

@@ -1,18 +1,34 @@
 import matlab.engine
 import numpy as np
-import os 
+import os, time
 from AdaptiveHAC.pointTransformer import train_cls
+from AdaptiveHAC.processing import PointCloud
 
+def timing_decorator(func):
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print(f"{func.__name__} took {elapsed_time} seconds to run.")
+        return result
+    return wrapper
+
+@timing_decorator
 def save_PC(dir, PC, labels):
     activities = ['na','wlk','stat','sitdn','stupsit','bfrsit','bfrstand','ffw','stup','ffs']
     for act in activities:
-        os.mkdir(f'{dir}/{act}')
+        if os.path.isdir(f'{dir}/{act}') == False:
+            os.mkdir(f'{dir}/{act}')
+        elif os.path.isdir(f'{dir}/{act}') == True:
+            files = os.listdir(f'{dir}/{act}')
+            for file in files:
+                os.remove(os.path.join(f'{dir}/{act}', file)) # remove all existing files
+
     for sample, label, i in zip(PC, labels, range(len(PC))):
         sample_act = activities[int(np.mean(label))]
-        with open(f'{dir}/{sample_act}/{sample_act}_{i}.txt', "a") as file:
-            for node in sample[0]:
-                for point in node:
-                    file.write(f'{point[0]} {point[1]} {point[2]} {point[3]} {point[4]}')
+        for node in sample:
+            np.savetxt(f'{dir}/{sample_act}/{sample_act}_{i+1}.txt', node.normalise().data, fmt='%f')
     return
 
 os.environ['HYDRA_FULL_ERROR'] = '1'
@@ -58,7 +74,10 @@ for sample in samples:
     node_PC = []
     # process individual nodes
     for node in range(sample.shape[2]):
-        PC = eng.PointCloud(eng.raw2PC(sample[:,:,node], matlab.double(chunks), matlab.double(npoints), matlab.double(thr))) # point cloud generation
+        PC = PointCloud.PointCloud(np.asarray(eng.raw2PC(sample[:,:,node], 
+                                                         matlab.double(chunks), 
+                                                         matlab.double(npoints), 
+                                                         matlab.double(thr)))) # point cloud generation
         node_PC.append(PC)
     sample_PC.append(node_PC)
 

@@ -7,6 +7,7 @@ __pycache__/
 *.so
 #folders
 AdaptiveHAC/data/*
+AdaptiveHAC/py_test/*
 AdaptiveHAC/log/*
 AdaptiveHAC/pointTransformer/test/data/*
 AdaptiveHAC/pointTransformer/test/log/*

@@ -90,7 +90,7 @@ def PC_generation(samples, chunks, npoints, thr):
         samples_PC.append(node_PC)
     return samples_PC
 
-if __name__ == '__main__':
+def main():
     # data path
     #path = 'W:/staff-groups/ewi/me/MS3/MS3-Shared/Ronny_MonostaticData/Nicolas/MAT_data_aligned/'
     path = './test/data/'
@@ -102,11 +102,21 @@ if __name__ == '__main__':
     thr = 0.8
 
     data, lbl = load_data(path, file_name)
-    samples, labels = sample(data, lbl, sample_size = 'default')
+    # create spectogram
+    spectogram = eng.process(data, './segmentation/config_monostatic_TUD.mat')
+    entropy = eng.renyi(spectogram)
+    H_avg = np.zeros((entropy.size[2], entropy.size[2], entropy.size[1]))
+
+    # GT time stamps
+    tr2 = eng.sig2timestamp(lbl,spectogram[1],'nonzero')
+    
+    """ samples, labels = sample(data, lbl, sample_size = 'default')
     del(data, lbl)
     samples_PC = PC_generation(samples, chunks, npoints, thr)
     del(samples)
-    save_PC('./py_test/', samples_PC, labels)
+    save_PC('./py_test/', samples_PC, labels) """
 
     #train_cls.main()
-    print('running')
+
+if __name__ == '__main__':
+    main()

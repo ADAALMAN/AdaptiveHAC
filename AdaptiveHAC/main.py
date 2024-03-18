@@ -103,12 +103,29 @@ def main():
 
     data, lbl = load_data(path, file_name)
     # create spectogram
-    spectogram = eng.process(data, './segmentation/config_monostatic_TUD.mat')
+    spectogram, t, f = eng.process(data, './segmentation/config_monostatic_TUD.mat')
     entropy = eng.renyi(spectogram)
-    H_avg = np.zeros((entropy.size[2], entropy.size[2], entropy.size[1]))
+    H_avg = np.zeros((entropy.size[1], entropy.size[1], entropy.size[0]))
+    H_score = np.zeros((entropy.size[1], entropy.size[1]))
 
     # GT time stamps
-    tr2 = eng.sig2timestamp(lbl,spectogram[1],'nonzero')
+    tr2 = eng.sig2timestamp(lbl, t,'nonzero')
+
+    for i in range(entropy.size[1]):
+            for j in range(entropy.size[1]):
+                if i<j:
+                    H_avg[i,j,:] = np.mean([entropy[:,i],entropy[:,j]],2)
+                elif i == j:
+                    H_avg[i,j,:] = entropy[:,i]
+                # H-time stamps
+                d1 = np.reshape(H_avg[i,j,:],[],1)
+                _, lag, _ = eng.lagSearch(d1)
+                tr1 = eng.sig2timestamp(lag, t)
+                # compute score
+                if i <= j: 
+                    H_score[i,j], _ = eng.perfFuncLin(tr1,tr2)
+    
+    
     
     """ samples, labels = sample(data, lbl, sample_size = 'default')
     del(data, lbl)

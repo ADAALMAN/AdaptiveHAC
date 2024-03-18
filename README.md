@@ -2,6 +2,9 @@
 Adaptive Segmentation for Radar Point Cloud-based Continuous Human Activity Classification
 
 ## Installation
+Install MATLAB >2023b with:
+	- Image processing toolbox
+	- Signal processing toolbox
 Setup conda environment:
     -Install miniconda
     -With terminnal:

@@ -13,7 +13,7 @@ num_class: 9
 experiment_folder: test/
 dataset: ${experiment_folder}data/
 input_dim: 4
-_group_:
+model:
   nneighbor: 16
   nblocks: 4
   transformer_dim: 128

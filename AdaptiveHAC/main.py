@@ -90,6 +90,41 @@ def PC_generation(samples, chunks, npoints, thr):
         samples_PC.append(node_PC)
     return samples_PC
 
+def segmentation(data, lbl):
+    # create spectogram
+    spectogram, t, f = eng.process(data, './segmentation/config_monostatic_TUD.mat', nargout=3)
+    del(data) # temp
+    entropy = np.asarray(eng.renyi(spectogram, nargout=1))
+    H_avg = np.zeros((entropy.shape[1], entropy.shape[1], entropy.shape[0]))
+    H_score = np.zeros((entropy.shape[1], entropy.shape[1]))
+
+    # GT time stamps
+    tr2 = eng.sig2timestamp(lbl.T, t,'nonzero', nargout=1)
+
+    # compare node entropy
+    for i in range(entropy.shape[1]):
+            for j in range(entropy.shape[1]):
+                if i<j:
+                    H_avg[i,j,:] = np.mean(entropy[:,[i,j]], axis=1)
+                elif i == j:
+                    H_avg[i,j,:] = entropy[:,i]
+                # H-time stamps
+                d1 = H_avg[i,j,:].reshape(-1,1)
+                _, lag, _ = eng.lagSearch(d1, nargout=3)
+                tr1 = eng.sig2timestamp(lag, t, nargout=1)
+                # compute score
+                #if i <= j: 
+                    #H_score[i,j], _ = eng.perfFuncLin(tr1,tr2, nargout=2)
+                
+    # implement measure to choose timestamps from entropy
+    # temporarily take the mean
+    # 5-node averaged H
+    d_avg = np.mean(entropy, axis=1)
+    _, s_avg, _ = eng.lagSearch(d_avg, nargout=3)
+    tr_avg = eng.sig2timestamp(s_avg,t, nargout=1)   
+
+    input()
+
 def main():
     # data path
     #path = 'W:/staff-groups/ewi/me/MS3/MS3-Shared/Ronny_MonostaticData/Nicolas/MAT_data_aligned/'
@@ -102,28 +137,7 @@ def main():
     thr = 0.8
 
     data, lbl = load_data(path, file_name)
-    # create spectogram
-    spectogram, t, f = eng.process(data, './segmentation/config_monostatic_TUD.mat')
-    entropy = eng.renyi(spectogram)
-    H_avg = np.zeros((entropy.size[1], entropy.size[1], entropy.size[0]))
-    H_score = np.zeros((entropy.size[1], entropy.size[1]))
-
-    # GT time stamps
-    tr2 = eng.sig2timestamp(lbl, t,'nonzero')
-
-    for i in range(entropy.size[1]):
-            for j in range(entropy.size[1]):
-                if i<j:
-                    H_avg[i,j,:] = np.mean([entropy[:,i],entropy[:,j]],2)
-                elif i == j:
-                    H_avg[i,j,:] = entropy[:,i]
-                # H-time stamps
-                d1 = np.reshape(H_avg[i,j,:],[],1)
-                _, lag, _ = eng.lagSearch(d1)
-                tr1 = eng.sig2timestamp(lag, t)
-                # compute score
-                if i <= j: 
-                    H_score[i,j], _ = eng.perfFuncLin(tr1,tr2)
+    segmentation(data, lbl)
     
     
     

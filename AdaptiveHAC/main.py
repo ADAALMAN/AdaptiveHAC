@@ -3,7 +3,6 @@ import numpy as np
 import os, sys, time
 from AdaptiveHAC.pointTransformer import train_cls
 from AdaptiveHAC.processing import PointCloud
-from pympler import asizeof
 
 # initialize matlab
 os.environ['HYDRA_FULL_ERROR'] = '1'
@@ -122,15 +121,39 @@ def segmentation(data, lbl):
     index = np.append(index, data_len)#int(np.asarray(t).T[-1]/Ts)) # would be better with data.shape[1], but takes too long
 
     segments = []
+    labels = []
     for i in range(len(index)-1):
         segments.append(data[:,int(index[i]):int(index[i+1]),:])
+        labels.append(lbl[:,int(index[i]):int(index[i+1])])
+    return segments, labels
 
-    return segments
-
-def segmentation_thresholding(segments, threshold, method="shortest"):
+def segmentation_thresholding(segments, labels, threshold, method="shortest"):
     match method:
         case "split":
-            pass
+            j = 0
+            for i in range(len(segments)):
+                i = i-j
+                if segments[i].shape[1] < threshold:
+                    if i == (len(segments)-1):
+                        segments[i-1] = np.append(segments[i-1], segments[i], axis=1)
+                        labels[i-1] = np.append(labels[i-1], labels[i], axis=1)
+                        segments.pop(i)
+                        labels.pop(i)
+                        j = j + 1
+                    elif i == 0:
+                        segments[i+1] = np.concatenate((segments[i], segments[i+1]), axis=1)
+                        labels[i+1] = np.concatenate((labels[i], labels[i+1]), axis=1)
+                        segments.pop(i)
+                        labels.pop(i)
+                        j = j + 1
+                    else:
+                        segments[i-1] = np.concatenate((segments[i-1], np.array_split(segments[i], 2, axis=1)[0]), axis=1)
+                        segments[i+1] = np.concatenate((np.array_split(segments[i], 2, axis=1)[1], segments[i+1]), axis=1)
+                        labels[i-1] = np.concatenate((labels[i-1], np.array_split(labels[i], 2, axis=1)[0]), axis=1)
+                        labels[i+1] = np.concatenate((np.array_split(labels[i], 2, axis=1)[1], labels[i+1]), axis=1)
+                        segments.pop(i)
+                        labels.pop(i)
+                        j = j + 1
         case "shortest":
             j = 0
             for i in range(len(segments)):
@@ -138,25 +161,33 @@ def segmentation_thresholding(segments, threshold, method="shortest"):
                 if segments[i].shape[1] < threshold:
                     if i == (len(segments)-1):
                         segments[i-1] = np.append(segments[i-1], segments[i], axis=1)
+                        labels[i-1] = np.append(labels[i-1], labels[i], axis=1)
                         segments.pop(i)
+                        labels.pop(i)
                         j = j + 1
                     elif i == 0:
                         segments[i+1] = np.concatenate((segments[i], segments[i+1]), axis=1)
+                        labels[i+1] = np.concatenate((labels[i], labels[i+1]), axis=1)
                         segments.pop(i)
+                        labels.pop(i)
                         j = j + 1
                     elif segments[i-1].shape[1] < segments[i+1].shape[1]:
                         segments[i-1] = np.append(segments[i-1], segments[i], axis=1)
+                        labels[i-1] = np.append(labels[i-1], labels[i], axis=1)
                         segments.pop(i)
+                        labels.pop(i)
                         j = j + 1
                     elif segments[i-1].shape[1] > segments[i+1].shape[1]:
                         segments[i+1] = np.append(segments[i+1], segments[i], axis=1)
+                        labels[i+1] = np.append(labels[i+1], labels[i], axis=1)
                         segments.pop(i)
+                        labels.pop(i)
                         j = j + 1
         case _:
             print("select method")
-    return segments
+    return segments, labels
     
-def main():
+def main(sample_method="segmentation"):
     # data path
     #path = 'W:/staff-groups/ewi/me/MS3/MS3-Shared/Ronny_MonostaticData/Nicolas/MAT_data_aligned/'
     path = './test/data/'
@@ -169,17 +200,20 @@ def main():
 
     data, lbl = load_data(path, file_name)
     data = np.asarray(data)
-    segments = segmentation(data, lbl)
-    segments = segmentation_thresholding(segments, 4000, "shortest")
-    #del(data)
-    
-    samples, labels = sample(data, lbl, sample_size = 'default')
+    match sample_method:
+        case "window":
+            samples, labels = sample(data, lbl, sample_size = 'default')
+        case "segmentation":
+            samples, labels = segmentation(data, lbl)
+            samples, labels = segmentation_thresholding(samples, labels, 350, "split")
     del(data, lbl)
+    
+    """ 
     samples_PC = PC_generation(samples, chunks, npoints, thr)
     del(samples)
-    save_PC('./py_test/', samples_PC, labels)
+    save_PC('./py_test/', samples_PC, labels) """
 
     #train_cls.main()
 
 if __name__ == '__main__':
-    main()
+    main(sample_method="segmentation")

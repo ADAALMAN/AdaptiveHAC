@@ -106,21 +106,6 @@ def segmentation(data, lbl):
 
     # GT time stamps
     tr2 = eng.sig2timestamp(lbl.T, t,'nonzero', nargout=1)
-
-    # compare node entropy
-    for i in range(entropy.shape[1]):
-            for j in range(entropy.shape[1]):
-                if i<j:
-                    H_avg[i,j,:] = np.mean(entropy[:,[i,j]], axis=1)
-                elif i == j:
-                    H_avg[i,j,:] = entropy[:,i]
-                # H-time stamps
-                d1 = H_avg[i,j,:].reshape(-1,1)
-                _, lag, _ = eng.lagSearch(d1, nargout=3)
-                tr1 = eng.sig2timestamp(lag, t, nargout=1)
-                # compute score
-                #if i <= j: 
-                    #H_score[i,j], _ = eng.perfFuncLin(tr1,tr2, nargout=2)
                 
     # implement measure to choose timestamps from entropy
     # temporarily take the mean
@@ -128,21 +113,49 @@ def segmentation(data, lbl):
     d_avg = np.mean(entropy, axis=1)
     del(entropy)
     _, s_avg, _ = eng.lagSearch(d_avg, nargout=3)
-    tr_avg = eng.sig2timestamp(s_avg, t, nargout=1)   
+    tr_avg = eng.sig2timestamp(s_avg, np.linspace(0, data_len-1, num=s_avg.size[0]), nargout=1)   
 
     config = eng.load(f'./segmentation/config_monostatic_TUD.mat')
-    Ts = config['sample_time']
 
-    index = np.asarray(tr_avg)/Ts
+    index = np.asarray(tr_avg)
     index = np.insert(index, 0, 0, axis=1)
     index = np.append(index, data_len)#int(np.asarray(t).T[-1]/Ts)) # would be better with data.shape[1], but takes too long
 
     segments = []
     for i in range(len(index)-1):
         segments.append(data[:,int(index[i]):int(index[i+1]),:])
-    
+
     return segments
 
+def segmentation_thresholding(segments, threshold, method="shortest"):
+    match method:
+        case "split":
+            pass
+        case "shortest":
+            j = 0
+            for i in range(len(segments)):
+                i = i-j
+                if segments[i].shape[1] < threshold:
+                    if i == (len(segments)-1):
+                        segments[i-1] = np.append(segments[i-1], segments[i], axis=1)
+                        segments.pop(i)
+                        j = j + 1
+                    elif i == 0:
+                        segments[i+1] = np.concatenate((segments[i], segments[i+1]), axis=1)
+                        segments.pop(i)
+                        j = j + 1
+                    elif segments[i-1].shape[1] < segments[i+1].shape[1]:
+                        segments[i-1] = np.append(segments[i-1], segments[i], axis=1)
+                        segments.pop(i)
+                        j = j + 1
+                    elif segments[i-1].shape[1] > segments[i+1].shape[1]:
+                        segments[i+1] = np.append(segments[i+1], segments[i], axis=1)
+                        segments.pop(i)
+                        j = j + 1
+        case _:
+            print("select method")
+    return segments
+    
 def main():
     # data path
     #path = 'W:/staff-groups/ewi/me/MS3/MS3-Shared/Ronny_MonostaticData/Nicolas/MAT_data_aligned/'
@@ -157,13 +170,14 @@ def main():
     data, lbl = load_data(path, file_name)
     data = np.asarray(data)
     segments = segmentation(data, lbl)
-    del(data)
+    segments = segmentation_thresholding(segments, 4000, "shortest")
+    #del(data)
     
-    """ samples, labels = sample(data, lbl, sample_size = 'default')
+    samples, labels = sample(data, lbl, sample_size = 'default')
     del(data, lbl)
     samples_PC = PC_generation(samples, chunks, npoints, thr)
     del(samples)
-    save_PC('./py_test/', samples_PC, labels) """
+    save_PC('./py_test/', samples_PC, labels)
 
     #train_cls.main()
 

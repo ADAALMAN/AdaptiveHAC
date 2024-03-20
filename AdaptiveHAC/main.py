@@ -1,8 +1,9 @@
 import matlab.engine
 import numpy as np
-import os, time
+import os, sys, time
 from AdaptiveHAC.pointTransformer import train_cls
 from AdaptiveHAC.processing import PointCloud
+from pympler import asizeof
 
 # initialize matlab
 os.environ['HYDRA_FULL_ERROR'] = '1'
@@ -90,11 +91,16 @@ def PC_generation(samples, chunks, npoints, thr):
         samples_PC.append(node_PC)
     return samples_PC
 
+@timing_decorator
 def segmentation(data, lbl):
+    
     # create spectogram
     spectogram, t, f = eng.process(data, './segmentation/config_monostatic_TUD.mat', nargout=3)
-    del(data) # temp
+    data_len = data.shape[1]
+    #del(data)
+
     entropy = np.asarray(eng.renyi(spectogram, nargout=1))
+    del(spectogram)
     H_avg = np.zeros((entropy.shape[1], entropy.shape[1], entropy.shape[0]))
     H_score = np.zeros((entropy.shape[1], entropy.shape[1]))
 
@@ -120,16 +126,28 @@ def segmentation(data, lbl):
     # temporarily take the mean
     # 5-node averaged H
     d_avg = np.mean(entropy, axis=1)
+    del(entropy)
     _, s_avg, _ = eng.lagSearch(d_avg, nargout=3)
-    tr_avg = eng.sig2timestamp(s_avg,t, nargout=1)   
+    tr_avg = eng.sig2timestamp(s_avg, t, nargout=1)   
 
-    input()
+    config = eng.load(f'./segmentation/config_monostatic_TUD.mat')
+    Ts = config['sample_time']
+
+    index = np.asarray(tr_avg)/Ts
+    index = np.insert(index, 0, 0, axis=1)
+    index = np.append(index, data_len)#int(np.asarray(t).T[-1]/Ts)) # would be better with data.shape[1], but takes too long
+
+    segments = []
+    for i in range(len(index)-1):
+        segments.append(data[:,int(index[i]):int(index[i+1]),:])
+    
+    return segments
 
 def main():
     # data path
     #path = 'W:/staff-groups/ewi/me/MS3/MS3-Shared/Ronny_MonostaticData/Nicolas/MAT_data_aligned/'
     path = './test/data/'
-    file_name = '002_mon_wal_Nic'
+    file_name = '029_mon_Mix_Nic'
 
     # paramenters
     chunks = 6
@@ -137,9 +155,9 @@ def main():
     thr = 0.8
 
     data, lbl = load_data(path, file_name)
-    segmentation(data, lbl)
-    
-    
+    data = np.asarray(data)
+    segments = segmentation(data, lbl)
+    del(data)
     
     """ samples, labels = sample(data, lbl, sample_size = 'default')
     del(data, lbl)

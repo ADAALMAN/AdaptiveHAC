@@ -5,6 +5,7 @@ from AdaptiveHAC.pointTransformer import train_cls
 from AdaptiveHAC.lib import timing_decorator
 from AdaptiveHAC.segmentation import segmentation
 from AdaptiveHAC.processing import PC_processing
+from memory_profiler import profile
 
 # initialize matlab
 os.environ['HYDRA_FULL_ERROR'] = '1'
@@ -25,6 +26,7 @@ def load_data(path, file_name = None):
 
     return data, lbl
 
+@profile
 def main(sample_method="segmentation"):
     # data path
     #path = 'W:/staff-groups/ewi/me/MS3/MS3-Shared/Ronny_MonostaticData/Nicolas/MAT_data_aligned/'
@@ -37,7 +39,7 @@ def main(sample_method="segmentation"):
     thr = 0.8
 
     data, lbl = load_data(path, file_name)
-    data = np.asarray(data)
+    data = np.asarray(data, dtype=np.complex64)
     match sample_method:
         case "window":
             samples, labels = PC_processing.sample(data, lbl, sample_size = 'default')

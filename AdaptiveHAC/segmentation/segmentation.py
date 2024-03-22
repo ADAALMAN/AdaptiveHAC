@@ -14,11 +14,6 @@ def segmentation(data, lbl):
 
     entropy = np.asarray(eng.renyi(spectogram, nargout=1))
     del(spectogram)
-    H_avg = np.zeros((entropy.shape[1], entropy.shape[1], entropy.shape[0]))
-    H_score = np.zeros((entropy.shape[1], entropy.shape[1]))
-
-    # GT time stamps
-    tr2 = eng.sig2timestamp(lbl.T, t,'nonzero', nargout=1)
                 
     # implement measure to choose timestamps from entropy
     # temporarily take the mean

@@ -35,11 +35,6 @@ def main(sample_method="segmentation"):
     path = './test/data/'
     file_name = '029_mon_Mix_Nic'
 
-    # paramenters
-    chunks = 6
-    npoints = 1024
-    thr = 0.8
-
     data, lbl = load_data(path, file_name)
     
     match sample_method:
@@ -53,6 +48,8 @@ def main(sample_method="segmentation"):
     
     samples_PC = PC_processing.PC_generation(samples, chunks, npoints, thr)
 
+
+    """ 
     del(samples)
     os.mkdir(f'./py_test/seg_th_{seg_th}/')
     PC_processing.save_PC(f'./py_test/seg_th_{seg_th}/', samples_PC, labels)
@@ -60,4 +57,4 @@ def main(sample_method="segmentation"):
     #train_cls.main()
 
 if __name__ == '__main__':
-    main(sample_method="segmentation")
+    main(sample_method="segmentation")"""

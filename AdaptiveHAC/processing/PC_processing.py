@@ -60,6 +60,9 @@ def PC_generation(samples, chunks, npoints, thr):
                                                             matlab.double(chunks), 
                                                             matlab.double(npoints), 
                                                             matlab.double(thr)))) # point cloud generation
+            PC.visualise()
             node_PC.append(PC)
         samples_PC.append(node_PC)
     return samples_PC
+
+#eng.eval("dbstop in raw2PC at 10", nargout=0)

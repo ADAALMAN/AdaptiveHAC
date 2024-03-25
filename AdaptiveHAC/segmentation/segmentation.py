@@ -1,5 +1,6 @@
 import matlab.engine
 import numpy as np
+import matplotlib.pyplot as plt
 from AdaptiveHAC.lib import timing_decorator
 eng = matlab.engine.start_matlab()
 eng.addpath('segmentation')
@@ -9,19 +10,33 @@ def segmentation(data, lbl):
     
     # create spectogram
     spectogram, t, f = eng.process(data, './segmentation/config_monostatic_TUD.mat', nargout=3)
+    plt.figure(0)
+    plt.imshow(np.asarray(spectogram)[:,:,0],cmap='viridis')
+    plt.colorbar(label='Magnitude (dB)')
+    plt.title('Spectrogram')
+ 
     data_len = data.shape[1]
     #del(data)
 
     entropy = np.asarray(eng.renyi(spectogram, nargout=1))
-    del(spectogram)
+    plt.figure(1)
+    plt.plot(np.linspace(0, t.size[1], num=t.size[1]), entropy[:,0][:,np.newaxis])
+    plt.title('Entropy')
+
                 
     # implement measure to choose timestamps from entropy
     # temporarily take the mean
     # 5-node averaged H
     d_avg = np.mean(entropy, axis=1)
-    del(entropy)
     _, s_avg, _ = eng.lagSearch(d_avg, nargout=3)
+    plt.figure(2)
+    plt.plot(np.linspace(0, t.size[1], num=t.size[1]), s_avg*np.max(entropy[:,0]))
+    plt.plot(np.linspace(0, t.size[1], num=t.size[1]), entropy[:,0][:,np.newaxis])
+    plt.title('Lag')
+    plt.show()
+
     tr_avg = eng.sig2timestamp(s_avg, np.linspace(0, data_len-1, num=s_avg.size[0]), nargout=1)   
+
 
     config = eng.load(f'./segmentation/config_monostatic_TUD.mat')
 

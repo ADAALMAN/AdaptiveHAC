@@ -14,15 +14,15 @@ def segmentation(data, lbl):
     plt.imshow(np.asarray(spectogram)[:,:,0],cmap='viridis')
     plt.colorbar(label='Magnitude (dB)')
     plt.title('Spectrogram')
- 
+    
     data_len = data.shape[1]
-    #del(data)
+    
 
     entropy = np.asarray(eng.renyi(spectogram, nargout=1))
     plt.figure(1)
     plt.plot(np.linspace(0, t.size[1], num=t.size[1]), entropy[:,0][:,np.newaxis])
     plt.title('Entropy')
-
+    del(spectogram)
                 
     # implement measure to choose timestamps from entropy
     # temporarily take the mean

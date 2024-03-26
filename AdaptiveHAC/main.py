@@ -1,11 +1,13 @@
 import matlab.engine
 import numpy as np
 import os, sys
-from AdaptiveHAC.pointTransformer import train_cls
+#from AdaptiveHAC.pointTransformer import train_cls
 from AdaptiveHAC.lib import timing_decorator
 from AdaptiveHAC.segmentation import segmentation
 from AdaptiveHAC.processing import PC_processing
 from memory_profiler import profile
+import scipy.io as sci
+
 np.set_printoptions(threshold=sys.maxsize)
 
 # initialize matlab
@@ -16,20 +18,19 @@ eng = matlab.engine.start_matlab()
 def load_data(path, file_name = None):
     # load data file with the matlab engine and unpack data
     if file_name != None:
-        mat = eng.load(f'{path}{file_name}.mat')
+        mat = sci.loadmat(f'{path}{file_name}.mat')
         data = mat['hil_resha_aligned']
         lbl = mat['lbl_out']
-        del(mat) # cleanup
 
         # resize the labels to the data length
-        if lbl.size[1] > data.size[1]:
-            lbl = np.array(lbl)[:,:data.size[1]]
+        if lbl.shape[1] > data.shape[1]:
+            lbl = np.array(lbl)[:,:data.shape[1]]
 
         data = np.asarray(data, dtype=np.complex64) # reduce data in memory
 
     return data, lbl
 
-#@profile
+@profile
 def main(sample_method="segmentation", node_method="all"):
     # data path
     #path = 'W:/staff-groups/ewi/me/MS3/MS3-Shared/Ronny_MonostaticData/Nicolas/MAT_data_aligned/'

@@ -1,4 +1,4 @@
-function [score, used_trans] = perfFuncLin(trans_test, trans_GT)
+function [score, used_trans] = perfFuncLin(trans_test, trans_GT, window_size)
 %perfFuncLin Use linear scoring to evaluate the quality of found transitions
 %   [score, used_trans] = perfFuncLin(x,gt) returns a scoring for the similarity between a
 %   sequence x and a ground truth gt. Both x and gt should be sorted 1D
@@ -8,11 +8,12 @@ function [score, used_trans] = perfFuncLin(trans_test, trans_GT)
 arguments
     trans_test (:,1)
     trans_GT (:,1)
+    window_size
 end
 
 %% init
 assert(~isempty(trans_GT),'No ground truth transitions given')
-window_size = 2;
+window_size = window_size;
 dist_matrix = zeros ( [length(trans_test), length(trans_GT)] );
 used_trans = []; unused_trans = trans_test;
 score = 0;

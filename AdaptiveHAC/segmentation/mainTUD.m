@@ -15,46 +15,46 @@ for i=1:length(namesShort)
         disp(strcat(folder_path,file_path))
         
         %% Process data set
-        [spectrogram,t,f] = process(strcat(folder_path,file_path));
+        [spectrogram,t,f] = process(data, config_path);
         raw = struct;
         raw.H1 = renyi(spectrogram);
         
         %% init
-        H_avg = zeros([size(H,2),size(H,2),size(H,1)]);
-        H_score = zeros([size(H,2),size(H,2)]);
-        t1 = linspace(min(t),max(t),size(H,1));
-        load(strcat(folder_path,file_path,".mat"),'lbl_out');
+        H_avg = zeros([size(raw.H1,2),size(raw.H1,2),size(raw.H1,1)]);
+        H_score = zeros([size(raw.H1,2),size(raw.H1,2)]);
+        t1 = linspace(min(t),max(t),size(raw.H1,1));
+        %load(strcat(folder_path,file_path,".mat"),'lbl_out');
         
         % GT time stamps
         tr2 = sig2timestamp(lbl_out,t,'nonzero');
-        if isempty(tr2)
-            continue
-        end
+        % if isempty(tr2)
+        %     continue
+        % end
         
         %% computing H-score
-        for i=1:size(H,2)
-            for j=1:size(H,2)
+        for i=1:size(raw.H1,2)
+            for j=1:size(raw.H1,2)
                 if i<j
-                    H_avg(i,j,:) = mean([H(:,i),H(:,j)],2);
+                    H_avg(i,j,:) = mean([raw.H1(:,i),raw.H1(:,j)],2);
                 elseif i == j
-                    H_avg(i,j,:) = H(:,i);
+                    H_avg(i,j,:) = raw.H1(:,i);
                 end
                 % H-time stamps
                 d1 = reshape(H_avg(i,j,:),[],1);
                 [~, s1, ~] = lagSearch(d1);
                 tr1 = sig2timestamp(s1,t);
                 % compute score
-                if i <= j; [H_score(i,j), ~] = perfFuncLin(tr1,tr2); end
+                if i <= j; [H_score(i,j), ~] = perfFuncLin(tr1,tr2, 2); end
             end
         end
         
         % 5-node averaged H
-        d1 = mean(H,2);
+        d1 = mean(raw.H1,2);
         [~, s1, ~] = lagSearch(d1);
         tr1 = sig2timestamp(s1,t);
         % compute score
-        [H_avg_score,~] = perfFuncLin(tr1,tr2);
+        [H_avg_score,~] = perfFuncLin(tr1,tr2, 2);
         
-        save(strcat("C:\Users\nckruse\OneDrive - Delft University of Technology\MS3\Segmentation\data\results_TUD\raw\",file_path,".mat"),'H_score','H_avg_score','PBC_score','PBC_avg_score')
+        %save(strcat("C:\Users\nckruse\OneDrive - Delft University of Technology\MS3\Segmentation\data\results_TUD\raw\",file_path,".mat"),'H_score','H_avg_score','PBC_score','PBC_avg_score')
     end
 end

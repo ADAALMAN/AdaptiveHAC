@@ -33,8 +33,8 @@ def main(sample_method="segmentation", node_method="all"):
     # data path
     #path = 'W:/staff-groups/ewi/me/MS3/MS3-Shared/Ronny_MonostaticData/Nicolas/MAT_data_aligned/'
     path = './test/data/'
+    #file_name = '001_mon_Wal_Nic'
     file_name = '029_mon_Mix_Nic'
-
     match node_method:
         case "all":
             data, lbl = load_data(path, file_name)

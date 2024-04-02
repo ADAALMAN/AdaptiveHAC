@@ -5,25 +5,16 @@ from AdaptiveHAC.lib import timing_decorator
 eng = matlab.engine.start_matlab()
 eng.addpath('segmentation')
 
-def H_score(entropy, tr2, data_len):
-    H_avg = np.zeros((entropy.shape[1],entropy.shape[1],entropy.shape[0])) #5x5x1813
-    H_score = np.zeros((entropy.shape[1],entropy.shape[1])) #5x5
+def H_score(tr_avg, lbl, data_len):
+    tr_GT = eng.sig2timestamp(lbl, np.linspace(0, data_len-1, num=data_len), 'nonzero')
+    if tr_GT.size[1] == 0:
+        tr_GT = np.asarray([0.0])[:,np.newaxis]
 
-    # computing H-score
-    for i in range(entropy.shape[1]): # compare each node
-        for j in range(entropy.shape[1]):
-            if i<j:
-                H_avg[i,j,:] = np.mean(entropy[:, [i, j]], axis=1) # average the entrpy of 2 nodes
-            elif i == j:
-                H_avg[i,j,:] = entropy[:,i]
-            # H-time stamps
-                
-            d1 = H_avg[i,j,:].reshape(-1,1)
-            _, s1, _ = eng.lagSearch(d1, nargout=3)
-            tr1 = eng.sig2timestamp(s1, np.linspace(0, data_len-1, num=s1.size[0]), nargout=1)
-            # compute score
-            if i <= j:
-                H_score[i,j], _ = eng.perfFuncLin(tr1, tr2, data_len/60,nargout=2)
+    # compute score
+    # give 1 score to the entire segment
+    H_score, _ = eng.perfFuncLin(tr_avg, tr_GT,  data_len/60,nargout=2)
+    # evaluate each transition
+    H_score_trans, _ = eng.perfFuncLinSeg(tr_avg, tr_GT,  data_len/180,nargout=2)
     return H_score
 
     
@@ -58,19 +49,9 @@ def segmentation(data, lbl):
     plt.title('Lag')
     #plt.show()
 
-    tr_avg = eng.sig2timestamp(s_avg, np.linspace(0, data_len-1, num=s_avg.size[0]), nargout=1)   
-    tr_GT = eng.sig2timestamp(lbl, np.linspace(0, data_len-1, num=s_avg.size[0]), 'nonzero')
-    if tr_GT.size[1] == 0:
-        tr_GT = np.asarray([0.0])[:,np.newaxis]
+    tr_avg = eng.sig2timestamp(s_avg, np.linspace(0, data_len-1, num=data_len), nargout=1)   
 
-    d1 = np.mean(entropy,axis=1)
-    _, s1, _ = eng.lagSearch(d1, nargout=3)
-    tr1 = eng.sig2timestamp(s1, t, nargout=1)
-    # compute score
-    H_avg_score, _ = eng.perfFuncLin(tr_avg, tr_GT,  data_len/60,nargout=2)
-
-    
-    H_score(entropy, tr_GT, data_len)
+    H_avg_score = H_score(tr_avg, lbl, data_len)
 
     config = eng.load(f'./segmentation/config_monostatic_TUD.mat')
 
@@ -83,7 +64,7 @@ def segmentation(data, lbl):
     for i in range(len(index)-1):
         segments.append(data[:,int(index[i]):int(index[i+1]),:])
         labels.append(lbl[:,int(index[i]):int(index[i+1])])
-    return segments, labels
+    return segments, labels, H_avg_score
 
 @timing_decorator.timing_decorator
 def segmentation_thresholding(segments, labels, threshold, method="shortest"):

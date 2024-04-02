@@ -48,7 +48,7 @@ def main(sample_method="segmentation", node_method="all"):
             samples, labels = PC_processing.sample(data, lbl, sample_size = 'default')
         case "segmentation":
             seg_th = 100
-            samples, labels = segmentation.segmentation(data, lbl)
+            samples, labels, H_avg_score = segmentation.segmentation(data, lbl)
             samples, labels = segmentation.segmentation_thresholding(samples, labels, seg_th, "split")
     #del(data, lbl)
     

@@ -1,4 +1,4 @@
-function [score, used_trans] = perfFuncLin(trans_test, trans_GT, window_size)
+function [score, used_trans] = perfFuncLinSeg(trans_test, trans_GT, window_size)
 %perfFuncLin Use linear scoring to evaluate the quality of found transitions
 %   [score, used_trans] = perfFuncLin(x,gt) returns a scoring for the similarity between a
 %   sequence x and a ground truth gt. Both x and gt should be sorted 1D
@@ -25,7 +25,8 @@ end
 for i = 1:length(trans_GT)
     dist_matrix(:,i) = abs( trans_GT(i)-trans_test );
 end
-p=0;
+
+scores = [];
 while ~isempty(dist_matrix)
     delay = min(min(dist_matrix));
     [row, col] = find( dist_matrix==delay , 1 );
@@ -33,12 +34,12 @@ while ~isempty(dist_matrix)
     unused_trans(row) = [];
     dist_matrix(row,:) = []; dist_matrix(:,col) = [];
     if delay < window_size
-        score = score + 1; %-delay./window_size; %remove comment to go to non-trapezoid
-        p=p+1;
+        scores(end+1) = 1; %-delay./window_size; %remove comment to go to non-trapezoid
     elseif delay >= window_size && delay < 1.5*window_size %trapezoid with width (window_size) and falling slope of length (window_size/2)
-        score = score + 1-(delay-window_size)./(window_size/2);
-        p=p+1;
+        scores(end+1) = 1-(delay-window_size)./(window_size/2);
+    elseif delay >= window_size && delay > 1.5*window_size
+        scores(end+1) = 0;
     end
 end
-score = score./max([length(trans_test),length(trans_GT)]);
+score = scores;
 end

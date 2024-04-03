@@ -7,7 +7,8 @@ from AdaptiveHAC.segmentation import segmentation
 from AdaptiveHAC.processing import PC_processing
 from memory_profiler import profile
 import scipy.io as sci
-
+import hydra
+import omegaconf
 np.set_printoptions(threshold=sys.maxsize)
 
 # initialize matlab
@@ -18,7 +19,7 @@ eng = matlab.engine.start_matlab()
 def load_data(path, file_name = None):
     # load data file with the matlab engine and unpack data
     if file_name != None:
-        mat = eng.load(f'{path}{file_name}.mat')
+        mat = sci.loadmat(f'{path}{file_name}.mat')
         data = np.asarray(mat['hil_resha_aligned'], dtype=np.complex64) # reduce data in memory
         lbl = np.asarray(mat['lbl_out'])
 
@@ -29,7 +30,13 @@ def load_data(path, file_name = None):
     return data, lbl
 
 @profile
-def main(sample_method="segmentation", node_method="all"):
+@hydra.main(config_path="conf", config_name="sweep", version_base='1.1')
+def main(args):
+    omegaconf.OmegaConf.set_struct(args, False)
+    sample_method = args.sample_method
+    node_method = args.node_method
+    subsegmentation = args.subsegmentation
+    features = args.features
     # data path
     #path = 'W:/staff-groups/ewi/me/MS3/MS3-Shared/Ronny_MonostaticData/Nicolas/MAT_data_aligned/'
     path = './test/data/'
@@ -52,11 +59,16 @@ def main(sample_method="segmentation", node_method="all"):
             samples, labels = segmentation.segmentation_thresholding(samples, labels, seg_th, "split")
     #del(data, lbl)
     
-    chunks= 6
     npoints = 1024
     thr = 0.8
-    samples_PC = PC_processing.PC_generation(samples, chunks, npoints, thr)
-
+    match subsegmentation:
+        case "fixed-amount":
+            chunks = 6
+            features = []
+            samples_PC = PC_processing.PC_generation(samples, subsegmentation, chunks, npoints, thr, features)
+        case "fixed-length":
+            pass
+    
     """ 
     del(samples)
     os.mkdir(f'./py_test/seg_th_{seg_th}/')
@@ -65,4 +77,4 @@ def main(sample_method="segmentation", node_method="all"):
     #train_cls.main()"""
 
 if __name__ == '__main__':
-    main(sample_method="segmentation")
+    main()

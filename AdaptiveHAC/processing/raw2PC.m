@@ -1,4 +1,4 @@
-function [PC] = raw2PC(raw, chunks, npoints, thr, options,cfg)
+function [PC] = raw2PC(raw, subsegmentation, chunks, npoints, thr, features, options,cfg)
 %RAW2PC Convert a raw data (range-time) segment to a point cloud
 %representation
 %   [PC] = raw2PC(RAW, CHUNKS, NPOINTS) Takes input
@@ -7,9 +7,11 @@ function [PC] = raw2PC(raw, chunks, npoints, thr, options,cfg)
 %   total amount of points
 arguments
     raw
+    subsegmentation = "fixed-amount"
     chunks (1,1) = 6
     npoints (1,1) = 1024
     thr (1,1) = 0.8
+    features = []
     options.normalisation = true
     options.nodeProcessing {mustBeNumericOrLogical} = 0
     options.vIselection = 0
@@ -19,7 +21,7 @@ end
 
 if ~options.nodeProcessing
     assert(size(raw,3)==1, '3D array entered, but node processing is off.')
-end
+end 
 
 PC_raw = [];
 

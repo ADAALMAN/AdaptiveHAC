@@ -1,9 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 class PointCloud:
-    def __init__(self, data):
+    def __init__(self, data, label):
         self.data = data
+        self.label = label
+        self.mean_label = int(np.mean(label, axis=1))
         self.PRF = 122
+        self.activities = ["N/A", "Walking", "Stationary","Standing up (sitting)",
+                            "Bending (sitting)","Bending (standing)","Standing up (ground)",
+                            "Falling (walking)","Standing up (ground)","Falling (standing)"]
 
     def normalise(self):
         (self.data[:, 0] - np.mean(self.data[:, 0])) / 480                         # range
@@ -20,4 +25,5 @@ class PointCloud:
         ax.set_xlabel('Range')
         ax.set_ylabel('Frequency')
         ax.set_zlabel('Time')
+        ax.set_title(self.activities[self.mean_label])
         plt.show()

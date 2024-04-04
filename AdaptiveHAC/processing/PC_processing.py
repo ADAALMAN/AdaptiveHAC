@@ -48,19 +48,22 @@ def sample(data, lbl, sample_size = 'default'):
     return samples, labels
 
 @timing_decorator.timing_decorator
-def PC_generation(samples, chunks, npoints, thr):
+def PC_generation(samples, subsegmentation, chunks, npoints, thr, features, labels):
     print('Starting processing')
     # process individual samples
     samples_PC = []
-    for sample in samples:
+    for sample, label in zip(samples, labels):
         node_PC = []
         # process individual nodes
         for node in range(sample.shape[2]):
             PC = PointCloud.PointCloud(np.asarray(eng.raw2PC(sample[:,:,node], 
+                                                            subsegmentation,
                                                             matlab.double(chunks), 
                                                             matlab.double(npoints), 
-                                                            matlab.double(thr)))) # point cloud generation
-            PC.visualise()
+                                                            matlab.double(thr),
+                                                            features)),
+                                       label) # point cloud generation
+            #PC.visualise()
             node_PC.append(PC)
         samples_PC.append(node_PC)
     return samples_PC

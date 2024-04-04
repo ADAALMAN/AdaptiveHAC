@@ -55,7 +55,7 @@ for iNode = 1:size(raw,3)
 end
 if npoints <= size(PC_raw,1); PC_raw = PC_raw(round(linspace(1,size(PC_raw,1),npoints)),:); 
 else
-    warning("PC upsampled with %d identical points",npoints-size(PC_raw,1)); 
+    %warning("PC upsampled with %d identical points",npoints-size(PC_raw,1)); 
     PC_raw(end+1:npoints,:) = datasample(PC_raw,(npoints-size(PC_raw,1)),1,"Replace",true);
 end
 if options.vIselection

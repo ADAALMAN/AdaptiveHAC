@@ -19,7 +19,7 @@ eng = matlab.engine.start_matlab()
 def load_data(path, file_name = None):
     # load data file with the matlab engine and unpack data
     if file_name != None:
-        mat = sci.loadmat(f'{path}{file_name}.mat')
+        mat = sci.loadmat(f'{path}/{file_name}.mat')
         data = np.asarray(mat['hil_resha_aligned'], dtype=np.complex64) # reduce data in memory
         lbl = np.asarray(mat['lbl_out'])
 
@@ -37,22 +37,24 @@ def main(args):
     node_method = args.node_method
     subsegmentation = args.subsegmentation
     features = args.features
+    data_path = hydra.utils.to_absolute_path(args.data_path)
     
     # data path
     #path = 'W:/staff-groups/ewi/me/MS3/MS3-Shared/Ronny_MonostaticData/Nicolas/MAT_data_aligned/'
-    path = './test/data/'
     #file_name = '001_mon_Wal_Nic'
     file_name = '029_mon_Mix_Nic'
+    
     match node_method:
         case "all":
-            data, lbl = load_data(path, file_name)
+            data, lbl = load_data(data_path, file_name)
         case "individual":
+            return #WIP
             i = 0
-            data, lbl = load_data(path, file_name)
+            data, lbl = load_data(data_path, file_name)
             data = data[:,:, i]
     
     match sample_method:
-        case "window":
+        case "windowing":
             samples, labels = PC_processing.sample(data, lbl, sample_size = 'default')
         case "segmentation":
             seg_th = 100
@@ -66,9 +68,10 @@ def main(args):
         case "fixed-amount":
             chunks = 6
             features = []
-            samples_PC = PC_processing.PC_generation(samples, subsegmentation, chunks, npoints, thr, features)
+            print(node_method, sample_method, subsegmentation)
+            samples_PC = PC_processing.PC_generation(samples, subsegmentation, chunks, npoints, thr, features, labels)
         case "fixed-length":
-            pass
+            return
     
     """ 
     del(samples)

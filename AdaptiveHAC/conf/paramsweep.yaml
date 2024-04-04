@@ -4,13 +4,18 @@ sample_method: segmentation
 node_method: all
 subsegmentation: fixed-amount
 features: none
+
+data_path: ${hydra:runtime.cwd}/test/data/
 experiment_folder: 'test/paramsweep/'
 
 hydra:
   job:
     chdir: True
   run:
-    dir: ${experiment_folder}log/
+    dir: test/runs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: ${experiment_folder}${now:%Y-%m-%d}/${now:%H-%M-%S}
+    subdir: ${hydra.job.num}
   sweeper:
     params:
       sample_method: windowing,segmentation

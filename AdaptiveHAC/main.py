@@ -33,7 +33,6 @@ def load_data(path, file_name = None):
 @hydra.main(config_path="conf", config_name="paramsweep", version_base='1.1')
 def main(args):
     omegaconf.OmegaConf.set_struct(args, False)
-    features = args.features
     data_path = hydra.utils.to_absolute_path(args.data_path)
     
     # data path
@@ -58,8 +57,12 @@ def main(args):
             seg_th = 100
             samples, labels, H_avg_score = segmentation.segmentation(data, lbl)
             samples, labels = segmentation.segmentation_thresholding(samples, labels, seg_th, "split")
-    #del(data, lbl)
+    del(data, lbl)
     
+    match args.features:
+        case "none":
+            pass
+        
     npoints = 1024
     thr = 0.8
     match args.subsegmentation:

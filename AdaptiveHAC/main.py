@@ -1,14 +1,12 @@
 import matlab.engine
 import numpy as np
-import os, sys
-#from AdaptiveHAC.pointTransformer import train_cls
+import os, sys, hydra, omegaconf, yaml, argparse
+from AdaptiveHAC.pointTransformer import train_cls
 from AdaptiveHAC.lib import timing_decorator
 from AdaptiveHAC.segmentation import segmentation
 from AdaptiveHAC.processing import PC_processing
 from memory_profiler import profile
 import scipy.io as sci
-import hydra
-import omegaconf
 np.set_printoptions(threshold=sys.maxsize)
 
 # initialize matlab
@@ -27,7 +25,24 @@ def load_data(path, file_name = None):
         if lbl.shape[1] > data.shape[1]:
             lbl = np.array(lbl)[:,:data.shape[1]]
 
-    return data, lbl
+    return data, lbl   
+            
+def load_PT_config(PT_config_path):
+    with open(f'{PT_config_path}cls.yaml', 'r') as file:
+        dict_args =  yaml.safe_load(file)
+        
+    if 'defaults' in dict_args:
+        for default in dict_args['defaults']:
+            if isinstance(default, dict):
+                for key, value in default.items():
+                    with open(f'{PT_config_path}{key}/{value}.yaml', 'r') as file:
+                        ref_config = yaml.safe_load(file)
+                    dict_args[key] = argparse.Namespace(**ref_config)
+                dict_args.pop('defaults', None)
+                
+    dict_args = argparse.Namespace(**dict_args)
+    dict_args.experiment_folder = './'
+    return dict_args
 
 #@profile
 @hydra.main(config_path="conf", config_name="paramsweep", version_base='1.1')
@@ -77,7 +92,9 @@ def main(args):
     os.mkdir(f'./seg_th_{seg_th}/')
     PC_processing.save_PC(f'./seg_th_{seg_th}/', samples_PC, labels)
 
-    #train_cls.main()"""
+    PT_args = load_PT_config(args.PT_config_path)
+    train_cls.main([PT_args, samples_PC])
 
 if __name__ == '__main__':
     main()
+    #train_cls.main()

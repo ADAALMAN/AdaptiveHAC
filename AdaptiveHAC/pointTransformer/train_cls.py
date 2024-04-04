@@ -2,18 +2,21 @@
 sourcr: https://github.com/POSTECH-CVLab/point-transformer
 modified by zhongyuan
 '''
-from AdaptiveHAC.pointTransformer.dataset import ModelNetDataLoader
+from AdaptiveHAC.pointTransformer.dataset import ModelNetDataLoader, PCModelNetDataLoader
 import numpy as np
 import os
 import torch
 import logging
 from tqdm import tqdm
 from AdaptiveHAC.pointTransformer import provider
+from AdaptiveHAC.processing.PointCloud import PointCloud
 import importlib
 import shutil
 import hydra
 import omegaconf
 import matplotlib.pyplot as plt
+import argparse
+from sklearn.model_selection import train_test_split
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 path=os.getcwd()
@@ -41,22 +44,36 @@ def test(model, loader, num_class): #num_class should change !!!
     return instance_acc, class_acc
 
 
-@hydra.main(config_path='config', config_name='cls', version_base='1.1')
+#@hydra.main(config_path='config', config_name='cls', version_base='1.1')
 def main(args):
-    omegaconf.OmegaConf.set_struct(args, False)
+    if isinstance(args, list):
+        PC = args[1]
+        args = args[0]
+    elif isinstance(args, omegaconf.dictconfig.DictConfig):  
+        PC = None  
+        omegaconf.OmegaConf.set_struct(args, False)
+    elif isinstance(args, dict):
+        PC = None
 
     '''HYPER PARAMETER'''
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
     logger = logging.getLogger(__name__)
 
     
-    print(args)
     '''DATA LOADING'''
     logger.info('Load dataset ...')
-    dataset = args.dataset
-    DATA_PATH = hydra.utils.to_absolute_path(dataset)
-    TRAIN_DATASET = ModelNetDataLoader(root=DATA_PATH, npoint=args.num_point, split='train')
-    TEST_DATASET = ModelNetDataLoader(root=DATA_PATH, npoint=args.num_point, split='test')
+    if PC != None:
+        if isinstance(PC[0][0], PointCloud):
+            #WIP
+            TRAIN_PC, TEST_PC = train_test_split(PC, train_size=0.8, shuffle=True)
+            TRAIN_DATASET = PCModelNetDataLoader(PC=TRAIN_PC, npoint=args.num_point)
+            TEST_DATASET = PCModelNetDataLoader(PC=TEST_PC, npoint=args.num_point)
+    else:
+        dataset = args.dataset
+        DATA_PATH = hydra.utils.to_absolute_path(dataset)
+        TRAIN_DATASET = ModelNetDataLoader(root=DATA_PATH, npoint=args.num_point, split='train')
+        TEST_DATASET = ModelNetDataLoader(root=DATA_PATH, npoint=args.num_point, split='test')
+        
     trainDataLoader = torch.utils.data.DataLoader(TRAIN_DATASET, batch_size=args.batch_size, shuffle=True, num_workers=4)
     testDataLoader = torch.utils.data.DataLoader(TEST_DATASET, batch_size=args.batch_size, shuffle=False, num_workers=4)
 
@@ -87,7 +104,7 @@ def main(args):
             lr=args.learning_rate,
             betas=(0.9, 0.999),
             eps=1e-08,
-            weight_decay=args.weight_decay
+            weight_decay=float(args.weight_decay)
         )
     else:
         optimizer = torch.optim.SGD(classifier.parameters(), lr=0.01, momentum=0.9)

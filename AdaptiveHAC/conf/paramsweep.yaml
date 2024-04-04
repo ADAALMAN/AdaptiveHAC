@@ -6,6 +6,7 @@ subsegmentation: fixed-amount
 features: none
 
 data_path: ${hydra:runtime.cwd}/test/data/
+PT_config_path: ${hydra:runtime.cwd}/pointTransformer/config/
 experiment_folder: 'test/paramsweep/'
 
 hydra:

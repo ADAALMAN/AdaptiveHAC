@@ -111,17 +111,14 @@ hydra:
   overrides:
     hydra:
     - hydra.mode=RUN
-    task:
-    - sample_method=segmentation
-    - node_method=all
-    - subsegmentation=fixed-amount
+    task: []
   job:
-    name: main
+    name: train_cls
     chdir: true
-    override_dirname: node_method=all,sample_method=segmentation,subsegmentation=fixed-amount
+    override_dirname: ''
     id: ???
     num: ???
-    config_name: config
+    config_name: cls
     env_set: {}
     env_copy: []
     config:
@@ -137,14 +134,15 @@ hydra:
     - path: hydra.conf
       schema: pkg
       provider: hydra
-    - path: C:\Users\adaal\Documents\GitHub\AdaptiveHAC\AdaptiveHAC\conf
-      schema: file
+    - path: AdaptiveHAC.pointTransformer.config
+      schema: pkg
       provider: main
     - path: ''
       schema: structured
       provider: schema
     output_dir: C:\Users\adaal\Documents\GitHub\AdaptiveHAC\AdaptiveHAC\test\log
     choices:
+      model: Hengshuang
       hydra/env: default
       hydra/callbacks: null
       hydra/job_logging: default

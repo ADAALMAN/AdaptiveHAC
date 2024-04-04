@@ -33,9 +33,6 @@ def load_data(path, file_name = None):
 @hydra.main(config_path="conf", config_name="paramsweep", version_base='1.1')
 def main(args):
     omegaconf.OmegaConf.set_struct(args, False)
-    sample_method = args.sample_method
-    node_method = args.node_method
-    subsegmentation = args.subsegmentation
     features = args.features
     data_path = hydra.utils.to_absolute_path(args.data_path)
     
@@ -44,7 +41,7 @@ def main(args):
     #file_name = '001_mon_Wal_Nic'
     file_name = '029_mon_Mix_Nic'
     
-    match node_method:
+    match args.node_method:
         case "all":
             data, lbl = load_data(data_path, file_name)
         case "individual":
@@ -53,8 +50,9 @@ def main(args):
             data, lbl = load_data(data_path, file_name)
             data = data[:,:, i]
     
-    match sample_method:
+    match args.sample_method:
         case "windowing":
+            seg_th = "NA"
             samples, labels = PC_processing.sample(data, lbl, sample_size = 'default')
         case "segmentation":
             seg_th = 100
@@ -64,19 +62,17 @@ def main(args):
     
     npoints = 1024
     thr = 0.8
-    match subsegmentation:
+    match args.subsegmentation:
         case "fixed-amount":
             chunks = 6
             features = []
-            print(node_method, sample_method, subsegmentation)
-            samples_PC = PC_processing.PC_generation(samples, subsegmentation, chunks, npoints, thr, features, labels)
+            samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, chunks, npoints, thr, features, labels)
         case "fixed-length":
             return
     
-    """ 
     del(samples)
-    os.mkdir(f'./py_test/seg_th_{seg_th}/')
-    PC_processing.save_PC(f'./py_test/seg_th_{seg_th}/', samples_PC, labels)
+    os.mkdir(f'./seg_th_{seg_th}/')
+    PC_processing.save_PC(f'./seg_th_{seg_th}/', samples_PC, labels)
 
     #train_cls.main()"""
 

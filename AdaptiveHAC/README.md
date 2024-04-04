@@ -1,8 +1,8 @@
 # Adaptive HAC
 
 ## Running the code
-Normal run with set parameters.
-call: "python main.py {node_method} {sample_method} {subsegmentation} {features}"
+Normal run with set parameters via arguments.  
+Call: "python main.py {node_method} {sample_method} {subsegmentation} {features}"
 
 ## Sweeping the code
 Multiple combinations for the processing can be sweeped by using hydra multi-run.

@@ -3,8 +3,14 @@ defaults:
 sample_method: segmentation
 node_method: all
 subsegmentation: fixed-amount
+features: none
+experiment_folder: 'test/paramsweep/'
 
 hydra:
+  job:
+    chdir: True
+  run:
+    dir: ${experiment_folder}log/
   sweeper:
     params:
       sample_method: windowing,segmentation

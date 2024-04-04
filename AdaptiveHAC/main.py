@@ -15,7 +15,7 @@ np.set_printoptions(threshold=sys.maxsize)
 os.environ['HYDRA_FULL_ERROR'] = '1'
 eng = matlab.engine.start_matlab()
 
-@timing_decorator.timing_decorator
+#@timing_decorator.timing_decorator
 def load_data(path, file_name = None):
     # load data file with the matlab engine and unpack data
     if file_name != None:
@@ -29,14 +29,15 @@ def load_data(path, file_name = None):
 
     return data, lbl
 
-@profile
-@hydra.main(config_path="conf", config_name="sweep", version_base='1.1')
+#@profile
+@hydra.main(config_path="conf", config_name="paramsweep", version_base='1.1')
 def main(args):
     omegaconf.OmegaConf.set_struct(args, False)
     sample_method = args.sample_method
     node_method = args.node_method
     subsegmentation = args.subsegmentation
     features = args.features
+    
     # data path
     #path = 'W:/staff-groups/ewi/me/MS3/MS3-Shared/Ronny_MonostaticData/Nicolas/MAT_data_aligned/'
     path = './test/data/'

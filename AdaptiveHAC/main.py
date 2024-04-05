@@ -57,19 +57,28 @@ def main(args):
         case "all":
             data, lbl = load_data(data_path, file_name)
         case "individual":
-            return #WIP
+            return # depreciated
             i = 0
             data, lbl = load_data(data_path, file_name)
             data = data[:,:, i]
+        case _ if isinstance(args.node_method, int):
+            data, lbl = load_data(data_path, file_name)
+            data = data[:,:, args.node_method]
     
     match args.sample_method:
         case "windowing":
             seg_th = "NA"
-            samples, labels = PC_processing.sample(data, lbl, sample_size = 'default')
+            if isinstance(args.node_method, int):
+                samples, labels = PC_processing.SNsample(data, lbl, sample_size = 'default')
+            else:
+                samples, labels = PC_processing.sample(data, lbl, sample_size = 'default')
         case "segmentation":
             seg_th = 100
             segmentation_eng = segmentation.init_matlab(args.root)
-            samples, labels, H_avg_score = segmentation.segmentation(data, lbl, segmentation_eng, args.root)
+            if isinstance(args.node_method, int):
+                samples, labels, H_avg_score = segmentation.SNsegmentation(data, lbl, segmentation_eng, args.root)
+            else:
+                samples, labels, H_avg_score = segmentation.segmentation(data, lbl, segmentation_eng, args.root)
             samples, labels = segmentation.segmentation_thresholding(samples, labels, seg_th, "split")
     del(data, lbl)
     
@@ -84,16 +93,19 @@ def main(args):
             chunks = 6
             features = []
             processing_eng = PC_processing.init_matlab(args.root)
-            samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, chunks, npoints, thr, features, labels, processing_eng)
+            if isinstance(args.node_method, int):
+                samples_PC = PC_processing.SNPC_generation(samples, args.subsegmentation, chunks, npoints, thr, features, labels, processing_eng)
+            else:
+                samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, chunks, npoints, thr, features, labels, processing_eng)
         case "fixed-length":
             return
     
     del(samples)
     os.mkdir(f'./seg_th_{seg_th}/')
-    PC_processing.save_PC(f'./seg_th_{seg_th}/', samples_PC, labels)
+    #PC_processing.save_PC(f'./seg_th_{seg_th}/', samples_PC, labels) #needs to be updated for single node
 
     PT_args = load_PT_config(args.PT_config_path)
-    train_cls.main([PT_args, samples_PC])
+    #train_cls.main([PT_args, samples_PC])
 
 if __name__ == '__main__':
     main()

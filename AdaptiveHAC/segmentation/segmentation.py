@@ -25,7 +25,7 @@ def H_score(tr_avg, lbl, data_len, eng):
 
     
 #@timing_decorator.timing_decorator
-def segmentation(data, lbl, eng, root):
+def segmentation(data, lbl, eng, root): # multinode segmentation
     
     # create spectogram
     spectogram, t, f = eng.process(data, f'{root}/segmentation/config_monostatic_TUD.mat', nargout=3)
@@ -69,6 +69,53 @@ def segmentation(data, lbl, eng, root):
     labels = []
     for i in range(len(index)-1):
         segments.append(data[:,int(index[i]):int(index[i+1]),:])
+        labels.append(lbl[:,int(index[i]):int(index[i+1])])
+    return segments, labels, H_avg_score
+
+def SNsegmentation(data, lbl, eng, root): # single node segmentation
+    
+    # create spectogram
+    spectogram, t, f = eng.process(data, f'{root}/segmentation/config_monostatic_TUD.mat', nargout=3)
+    plt.figure(0)
+    plt.imshow(np.asarray(spectogram)[:,:],cmap='viridis')
+    plt.colorbar(label='Magnitude (dB)')
+    plt.title('Spectrogram')
+    
+    data_len = data.shape[1]
+    
+
+    entropy = np.asarray(eng.renyi(spectogram, nargout=1))
+    plt.figure(1)
+    plt.plot(np.linspace(0, t.size[1], num=t.size[1]), entropy[:,0][:,np.newaxis])
+    plt.title('Entropy')
+    del(spectogram)
+                
+    # implement measure to choose timestamps from entropy
+    # temporarily take the mean
+    # 5-node averaged H
+    d_avg = np.mean(entropy, axis=1)
+    _, s_avg, _ = eng.lagSearch(d_avg, nargout=3)
+    
+    plt.figure(2)
+    plt.plot(np.linspace(0, t.size[1], num=t.size[1]), s_avg*np.max(entropy[:,0]))
+    plt.plot(np.linspace(0, t.size[1], num=t.size[1]), entropy[:,0][:,np.newaxis])
+    plt.title('Lag')
+    #plt.show()
+
+    tr_avg = eng.sig2timestamp(s_avg, np.linspace(0, data_len-1, num=data_len), nargout=1)   
+
+    H_avg_score = H_score(tr_avg, lbl, data_len, eng)
+
+    config = eng.load(f'{root}/segmentation/config_monostatic_TUD.mat')
+
+    index = np.asarray(tr_avg)
+    index = np.insert(index, 0, 0, axis=1)
+    index = np.append(index, data_len)
+
+    segments = []
+    labels = []
+    for i in range(len(index)-1):
+        segments.append(data[:,int(index[i]):int(index[i+1])])
         labels.append(lbl[:,int(index[i]):int(index[i+1])])
     return segments, labels, H_avg_score
 

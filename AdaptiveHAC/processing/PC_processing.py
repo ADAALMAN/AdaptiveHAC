@@ -49,6 +49,26 @@ def sample(data, lbl, sample_size = 'default'):
     del(data) # cleanup
     return samples, labels
 
+def SNsample(data, lbl, sample_size = 'default'):
+    # split sequence into samples
+    samples = []
+    labels = []
+    data = np.array(data)
+
+    if sample_size == 'default':
+        window = 256
+        sample_size = int(data.shape[1]/window)
+    else:
+        sample_size = int(sample_size)
+
+    for i in range(sample_size):
+        sample = data[:,int(i*window):int((i+1)*window)]
+        label = lbl[:,int(i*window):int((i+1)*window)]
+        samples.append(sample)
+        labels.append(label)
+    del(data) # cleanup
+    return samples, labels
+
 @timing_decorator.timing_decorator
 def PC_generation(samples, subsegmentation, chunks, npoints, thr, features, labels, eng):
     print('Starting processing')
@@ -68,6 +88,22 @@ def PC_generation(samples, subsegmentation, chunks, npoints, thr, features, labe
             #PC.visualise()
             node_PC.append(PC)
         samples_PC.append(node_PC)
+    return samples_PC
+
+def SNPC_generation(samples, subsegmentation, chunks, npoints, thr, features, labels, eng):
+    print('Starting processing')
+    # process individual samples
+    samples_PC = []
+    for sample, label in zip(samples, labels):
+        PC = PointCloud.PointCloud(np.asarray(eng.raw2PC(sample[:,:], 
+                                                        subsegmentation,
+                                                        matlab.double(chunks), 
+                                                        matlab.double(npoints), 
+                                                        matlab.double(thr),
+                                                        features)),
+                                    label) # point cloud generation
+        PC.visualise()
+        samples_PC.append(PC)
     return samples_PC
 
 #eng.eval("dbstop in raw2PC at 10", nargout=0)

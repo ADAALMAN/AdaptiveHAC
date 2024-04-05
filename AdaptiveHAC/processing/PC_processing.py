@@ -4,10 +4,12 @@ import os, sys
 from AdaptiveHAC.processing import PointCloud
 from AdaptiveHAC.lib import timing_decorator
 
-# initialize matlab
-os.environ['HYDRA_FULL_ERROR'] = '1'
-eng = matlab.engine.start_matlab()
-eng.addpath('processing')
+def init_matlab(root):
+    # initialize matlab
+    os.environ['HYDRA_FULL_ERROR'] = '1'
+    eng = matlab.engine.start_matlab()
+    eng.addpath(f'{root}/processing')
+    return eng
 
 @timing_decorator.timing_decorator
 def save_PC(dir, PC, labels):
@@ -48,7 +50,7 @@ def sample(data, lbl, sample_size = 'default'):
     return samples, labels
 
 @timing_decorator.timing_decorator
-def PC_generation(samples, subsegmentation, chunks, npoints, thr, features, labels):
+def PC_generation(samples, subsegmentation, chunks, npoints, thr, features, labels, eng):
     print('Starting processing')
     # process individual samples
     samples_PC = []

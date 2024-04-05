@@ -11,7 +11,6 @@ np.set_printoptions(threshold=sys.maxsize)
 
 # initialize matlab
 os.environ['HYDRA_FULL_ERROR'] = '1'
-eng = matlab.engine.start_matlab()
 
 #@timing_decorator.timing_decorator
 def load_data(path, file_name = None):
@@ -70,7 +69,8 @@ def main(args):
             samples, labels = PC_processing.sample(data, lbl, sample_size = 'default')
         case "segmentation":
             seg_th = 100
-            samples, labels, H_avg_score = segmentation.segmentation(data, lbl)
+            segmentation_eng = segmentation.init_matlab(args.root)
+            samples, labels, H_avg_score = segmentation.segmentation(data, lbl, segmentation_eng, args.root)
             samples, labels = segmentation.segmentation_thresholding(samples, labels, seg_th, "split")
     del(data, lbl)
     
@@ -84,7 +84,8 @@ def main(args):
         case "fixed-amount":
             chunks = 6
             features = []
-            samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, chunks, npoints, thr, features, labels)
+            processing_eng = PC_processing.init_matlab(args.root)
+            samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, chunks, npoints, thr, features, labels, processing_eng)
         case "fixed-length":
             return
     

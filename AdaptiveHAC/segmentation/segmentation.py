@@ -2,10 +2,16 @@ import matlab.engine
 import numpy as np
 import matplotlib.pyplot as plt
 from AdaptiveHAC.lib import timing_decorator
-eng = matlab.engine.start_matlab()
-eng.addpath('segmentation')
+import os
 
-def H_score(tr_avg, lbl, data_len):
+def init_matlab(root):
+    # initialize matlab
+    os.environ['HYDRA_FULL_ERROR'] = '1'
+    eng = matlab.engine.start_matlab()
+    eng.addpath(f'{root}/segmentation')
+    return eng
+
+def H_score(tr_avg, lbl, data_len, eng):
     tr_GT = eng.sig2timestamp(lbl, np.linspace(0, data_len-1, num=data_len), 'nonzero')
     if tr_GT.size[1] == 0:
         tr_GT = np.asarray([0.0])[:,np.newaxis]
@@ -19,10 +25,10 @@ def H_score(tr_avg, lbl, data_len):
 
     
 #@timing_decorator.timing_decorator
-def segmentation(data, lbl):
+def segmentation(data, lbl, eng, root):
     
     # create spectogram
-    spectogram, t, f = eng.process(data, './segmentation/config_monostatic_TUD.mat', nargout=3)
+    spectogram, t, f = eng.process(data, f'{root}/segmentation/config_monostatic_TUD.mat', nargout=3)
     plt.figure(0)
     plt.imshow(np.asarray(spectogram)[:,:,0],cmap='viridis')
     plt.colorbar(label='Magnitude (dB)')
@@ -51,9 +57,9 @@ def segmentation(data, lbl):
 
     tr_avg = eng.sig2timestamp(s_avg, np.linspace(0, data_len-1, num=data_len), nargout=1)   
 
-    H_avg_score = H_score(tr_avg, lbl, data_len)
+    H_avg_score = H_score(tr_avg, lbl, data_len, eng)
 
-    config = eng.load(f'./segmentation/config_monostatic_TUD.mat')
+    config = eng.load(f'{root}/segmentation/config_monostatic_TUD.mat')
 
     index = np.asarray(tr_avg)
     index = np.insert(index, 0, 0, axis=1)

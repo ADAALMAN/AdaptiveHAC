@@ -192,19 +192,19 @@ def main(args):
     plt.plot(loss_value)
     plt.xlabel('batches')
     plt.title('Loss')
-    plt.savefig(os.path.join(path,args.experiment_folder+'log/'+'loss.png'))
+    plt.savefig(os.path.join(args.experiment_folder+'log/'+'loss.png'))
     plt.figure(2)
     plt.plot(train_accuracy,label='train accuracy')
     plt.plot(test_accuracy, label = 'test accuracy')
     plt.xlabel('epochs')
     plt.title('accuracy')
     plt.legend()
-    plt.savefig(os.path.join(path,args.experiment_folder+'log/'+'accuracy.png'))
+    plt.savefig(os.path.join(args.experiment_folder+'log/'+'accuracy.png'))
     logger.info('End of savefig...')
-    with open(os.path.join(path,args.experiment_folder+'log/'+'loss.txt'),'w') as f:
+    with open(os.path.join(args.experiment_folder+'log/'+'loss.txt'),'w') as f:
         for loss in loss_value:
             f.write(str(loss))
-    with open(os.path.join(path,args.experiment_folder+'log/'+'accuracy.txt'),'w') as f:
+    with open(os.path.join(args.experiment_folder+'log/'+'accuracy.txt'),'w') as f:
         for acc in train_accuracy:
             f.write(str(acc))
             f.write(' ')

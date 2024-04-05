@@ -1,4 +1,3 @@
-import matlab.engine
 import numpy as np
 import os, sys, hydra, omegaconf, yaml, argparse
 from AdaptiveHAC.pointTransformer import train_cls

@@ -61,7 +61,6 @@ class PCModelNetDataLoader(Dataset):
         self.cache_size = cache_size
         self.PC = PC
         
-        
     def __len__(self):
         return len(self.PC)
     

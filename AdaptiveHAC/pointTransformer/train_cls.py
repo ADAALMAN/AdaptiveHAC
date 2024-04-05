@@ -43,7 +43,6 @@ def test(model, loader, num_class): #num_class should change !!!
     instance_acc = np.mean(mean_correct)
     return instance_acc, class_acc
 
-
 #@hydra.main(config_path='config', config_name='cls', version_base='1.1')
 def main(args):
     if isinstance(args, list):
@@ -59,12 +58,10 @@ def main(args):
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
     logger = logging.getLogger(__name__)
 
-    
     '''DATA LOADING'''
     logger.info('Load dataset ...')
     if PC != None:
         if isinstance(PC[0][0], PointCloud):
-            #WIP
             TRAIN_PC, TEST_PC = train_test_split(PC, train_size=0.8, shuffle=True)
             TRAIN_DATASET = PCModelNetDataLoader(PC=TRAIN_PC, npoint=args.num_point)
             TEST_DATASET = PCModelNetDataLoader(PC=TEST_PC, npoint=args.num_point)

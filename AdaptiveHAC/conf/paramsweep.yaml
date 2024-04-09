@@ -3,7 +3,7 @@ defaults:
 sample_method: segmentation
 node_method: all
 subsegmentation: fixed-amount
-features: none
+features: [entropy]
 
 root: ${hydra:runtime.cwd}
 data_path: ${hydra:runtime.cwd}/test/data/

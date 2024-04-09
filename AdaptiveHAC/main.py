@@ -76,15 +76,28 @@ def main(args):
             seg_th = 100
             segmentation_eng = segmentation.init_matlab(args.root)
             if isinstance(args.node_method, int):
-                samples, labels, H_avg_score = segmentation.SNsegmentation(data, lbl, segmentation_eng, args.root)
+                samples, labels, H_avg_score, entropies = segmentation.SNsegmentation(data, lbl, segmentation_eng, args.root)
             else:
-                samples, labels, H_avg_score = segmentation.segmentation(data, lbl, segmentation_eng, args.root)
+                samples, labels, H_avg_score, entropies = segmentation.segmentation(data, lbl, segmentation_eng, args.root)
             samples, labels = segmentation.segmentation_thresholding(samples, labels, seg_th, "split")
     del(data, lbl)
     
-    match args.features:
-        case "none":
-            pass
+    for feature in args.features:
+        features = {}
+        match feature:
+            case "none":
+                pass
+            case "entropy":
+                entropy = []
+                for ent in entropies:
+                    entropy.append(np.mean(ent))
+                features["entropy"] = entropy
+            case "PBC":
+                pass
+                #dict["PBC"]
+            case "time":
+                pass
+                #dict["time"]
         
     npoints = 1024
     thr = 0.8

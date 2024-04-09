@@ -59,18 +59,18 @@ def segmentation(data, lbl, eng, root): # multinode segmentation
 
     H_avg_score = H_score(tr_avg, lbl, data_len, eng)
 
-    config = eng.load(f'{root}/segmentation/config_monostatic_TUD.mat')
-
     index = np.asarray(tr_avg)
     index = np.insert(index, 0, 0, axis=1)
     index = np.append(index, data_len)
 
+    avg_entropies = []
     segments = []
     labels = []
     for i in range(len(index)-1):
+        avg_entropies.append(d_avg[int(index[i]/data.shape[1]*len(d_avg)):int(index[i+1]/data.shape[1]*len(d_avg))])
         segments.append(data[:,int(index[i]):int(index[i+1]),:])
         labels.append(lbl[:,int(index[i]):int(index[i+1])])
-    return segments, labels, H_avg_score
+    return segments, labels, H_avg_score, avg_entropies
 
 def SNsegmentation(data, lbl, eng, root): # single node segmentation
     
@@ -106,18 +106,18 @@ def SNsegmentation(data, lbl, eng, root): # single node segmentation
 
     H_avg_score = H_score(tr_avg, lbl, data_len, eng)
 
-    config = eng.load(f'{root}/segmentation/config_monostatic_TUD.mat')
-
     index = np.asarray(tr_avg)
     index = np.insert(index, 0, 0, axis=1)
     index = np.append(index, data_len)
 
+    avg_entropies = []
     segments = []
     labels = []
     for i in range(len(index)-1):
+        avg_entropies.append(d_avg[int(index[i]/data.shape[1]*len(d_avg)):int(index[i+1]/data.shape[1]*len(d_avg))])
         segments.append(data[:,int(index[i]):int(index[i+1])])
         labels.append(lbl[:,int(index[i]):int(index[i+1])])
-    return segments, labels, H_avg_score
+    return segments, labels, H_avg_score, avg_entropies
 
 @timing_decorator.timing_decorator
 def segmentation_thresholding(segments, labels, threshold, method="shortest"):

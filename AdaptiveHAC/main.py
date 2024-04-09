@@ -50,7 +50,7 @@ def main(args):
     
     # data path
     #path = 'W:/staff-groups/ewi/me/MS3/MS3-Shared/Ronny_MonostaticData/Nicolas/MAT_data_aligned/'
-    #file_name = '001_mon_Wal_Nic'
+    #file_name = '002_mon_Wal_Nic'
     file_name = '029_mon_Mix_Nic'
     
     match args.node_method:
@@ -76,10 +76,12 @@ def main(args):
             seg_th = 100
             segmentation_eng = segmentation.init_matlab(args.root)
             if isinstance(args.node_method, int):
-                samples, labels, H_avg_score, entropies = segmentation.SNsegmentation(data, lbl, segmentation_eng, args.root)
+                samples, labels, H_avg_score, entropy = segmentation.SNsegmentation(data, lbl, segmentation_eng, args.root)
             else:
-                samples, labels, H_avg_score, entropies = segmentation.segmentation(data, lbl, segmentation_eng, args.root)
+                samples, labels, H_avg_score, entropy = segmentation.segmentation(data, lbl, segmentation_eng, args.root)
             samples, labels = segmentation.segmentation_thresholding(samples, labels, seg_th, "split")
+            
+    data_len = data.shape[1]        
     del(data, lbl)
     
     for feature in args.features:
@@ -88,10 +90,13 @@ def main(args):
             case "none":
                 pass
             case "entropy":
-                entropy = []
-                for ent in entropies:
-                    entropy.append(np.mean(ent))
-                features["entropy"] = entropy
+                entropies = []
+                j = 0
+                for i in range(len(samples)):
+                    entropies.append(np.mean(entropy[int(j/data_len*len(entropy)):
+                                                     int((j+samples[i].shape[1])/data_len*len(entropy))]))
+                    j = j + samples[i].shape[1]
+                features["entropy"] = entropies
             case "PBC":
                 pass
                 #dict["PBC"]

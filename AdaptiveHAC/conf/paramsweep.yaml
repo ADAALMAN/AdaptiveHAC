@@ -23,4 +23,4 @@ hydra:
       sample_method: windowing,segmentation
       node_method: all,0,1,2,3,4 # the numbers are the nodes
       subsegmentation: fixed-amount,fixed-length
-      features: [entropy, time, PBC], [entropy], [time], [PBC]
+      features: entropy, time, PBC

@@ -27,27 +27,29 @@ def H_score(tr_avg, lbl, data_len, eng):
 #@timing_decorator.timing_decorator
 def segmentation(data, lbl, eng, root): # multinode segmentation
     
-    # create spectogram
-    spectogram, t, f = eng.process(data, f'{root}/segmentation/config_monostatic_TUD.mat', nargout=3)
+    # create spectrogram
+    spectrogram, t, f = eng.process(data, f'{root}/segmentation/config_monostatic_TUD.mat', nargout=3)
     plt.figure(0)
-    plt.imshow(np.asarray(spectogram)[:,:,0],cmap='viridis')
+    plt.imshow(np.asarray(spectrogram)[:,:,0],cmap='viridis')
     plt.colorbar(label='Magnitude (dB)')
     plt.title('Spectrogram')
     
     data_len = data.shape[1]
     
 
-    entropy = np.asarray(eng.renyi(spectogram, nargout=1))
+    entropy = np.asarray(eng.renyi(spectrogram, nargout=1))
+    PBC = np.asarray(eng.pbc(spectrogram, f'{root}/segmentation/config_monostatic_TUD.mat', nargout=1))
     plt.figure(1)
     plt.plot(np.linspace(0, t.size[1], num=t.size[1]), entropy[:,0][:,np.newaxis])
     plt.title('Entropy')
-    del(spectogram)
+    del(spectrogram)
                 
     # implement measure to choose timestamps from entropy
     # temporarily take the mean
     # 5-node averaged H
-    d_avg = np.mean(entropy, axis=1)
-    _, s_avg, _ = eng.lagSearch(d_avg, nargout=3)
+    entropy_avg = np.mean(entropy, axis=1)
+    PBC_avg = np.mean(PBC, axis=1)
+    _, s_avg, _ = eng.lagSearch(entropy_avg, nargout=3)
     
     plt.figure(2)
     plt.plot(np.linspace(0, t.size[1], num=t.size[1]), s_avg*np.max(entropy[:,0]))
@@ -68,31 +70,33 @@ def segmentation(data, lbl, eng, root): # multinode segmentation
     for i in range(len(index)-1):
         segments.append(data[:,int(index[i]):int(index[i+1]),:])
         labels.append(lbl[:,int(index[i]):int(index[i+1])])
-    return segments, labels, H_avg_score, d_avg
+    return segments, labels, H_avg_score, entropy_avg, PBC_avg
 
 def SNsegmentation(data, lbl, eng, root): # single node segmentation
     
-    # create spectogram
-    spectogram, t, f = eng.process(data, f'{root}/segmentation/config_monostatic_TUD.mat', nargout=3)
+    # create spectrogram
+    spectrogram, t, f = eng.process(data, f'{root}/segmentation/config_monostatic_TUD.mat', nargout=3)
     plt.figure(0)
-    plt.imshow(np.asarray(spectogram)[:,:],cmap='viridis')
+    plt.imshow(np.asarray(spectrogram)[:,:],cmap='viridis')
     plt.colorbar(label='Magnitude (dB)')
     plt.title('Spectrogram')
     
     data_len = data.shape[1]
     
 
-    entropy = np.asarray(eng.renyi(spectogram, nargout=1))
+    entropy = np.asarray(eng.renyi(spectrogram, nargout=1))
+    PBC = np.asarray(eng.pbc(spectrogram, nargout=1))
     plt.figure(1)
     plt.plot(np.linspace(0, t.size[1], num=t.size[1]), entropy[:,0][:,np.newaxis])
     plt.title('Entropy')
-    del(spectogram)
+    del(spectrogram)
                 
     # implement measure to choose timestamps from entropy
     # temporarily take the mean
     # 5-node averaged H
-    d_avg = np.mean(entropy, axis=1)
-    _, s_avg, _ = eng.lagSearch(d_avg, nargout=3)
+    entropy_avg = np.mean(entropy, axis=1)
+    PBC_avg = np.mean(PBC, axis=1)
+    _, s_avg, _ = eng.lagSearch(entropy_avg, nargout=3)
     
     plt.figure(2)
     plt.plot(np.linspace(0, t.size[1], num=t.size[1]), s_avg*np.max(entropy[:,0]))
@@ -113,7 +117,7 @@ def SNsegmentation(data, lbl, eng, root): # single node segmentation
     for i in range(len(index)-1):
         segments.append(data[:,int(index[i]):int(index[i+1])])
         labels.append(lbl[:,int(index[i]):int(index[i+1])])
-    return segments, labels, H_avg_score, d_avg
+    return segments, labels, H_avg_score, entropy_avg, PBC_avg
 
 @timing_decorator.timing_decorator
 def segmentation_thresholding(segments, labels, threshold, method="shortest"):

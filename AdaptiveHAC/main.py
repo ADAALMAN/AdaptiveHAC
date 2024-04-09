@@ -76,16 +76,16 @@ def main(args):
             seg_th = 100
             segmentation_eng = segmentation.init_matlab(args.root)
             if isinstance(args.node_method, int):
-                samples, labels, H_avg_score, entropy = segmentation.SNsegmentation(data, lbl, segmentation_eng, args.root)
+                samples, labels, H_avg_score, entropy, PBC = segmentation.SNsegmentation(data, lbl, segmentation_eng, args.root)
             else:
-                samples, labels, H_avg_score, entropy = segmentation.segmentation(data, lbl, segmentation_eng, args.root)
+                samples, labels, H_avg_score, entropy, PBC = segmentation.segmentation(data, lbl, segmentation_eng, args.root)
             samples, labels = segmentation.segmentation_thresholding(samples, labels, seg_th, "split")
             
     data_len = data.shape[1]        
     del(data, lbl)
     
+    features = {}
     for feature in args.features:
-        features = {}
         match feature:
             case "none":
                 pass
@@ -98,8 +98,13 @@ def main(args):
                     j = j + samples[i].shape[1]
                 features["entropy"] = entropies
             case "PBC":
-                pass
-                #dict["PBC"]
+                PBCs = []
+                j = 0
+                for i in range(len(samples)):
+                    PBCs.append(np.mean(PBC[int(j/data_len*len(PBC)):
+                                                     int((j+samples[i].shape[1])/data_len*len(PBC))]))
+                    j = j + samples[i].shape[1]
+                features["PBC"] = PBCs
             case "time":
                 pass
                 #dict["time"]

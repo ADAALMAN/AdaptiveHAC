@@ -67,7 +67,7 @@ class PCModelNetDataLoader(Dataset):
     def __getitem__(self, index):
         cls = self.PC[index][0].mean_label
         cls = torch.from_numpy(np.array([cls]).astype(np.int32)) 
-        point_set = torch.from_numpy(self.PC[index][0].data[:,0:4].astype(np.float32)) # need workaround for [0]
+        point_set = torch.from_numpy(self.PC[index][0].data[:,0:5].astype(np.float32)) # need workaround for [0]
         return point_set, cls
     
 class SeqModelNetDataLoader(Dataset):

@@ -1,13 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import stats
 class PointCloud:
     def __init__(self, data, label):
         self.data = data
         self.label = label
-        self.mean_label = int(np.mean(label, axis=1))
+        self.mean_label = int(stats.mode(label, axis=1))
         self.PRF = 122
-        self.activities = ["N/A", "Walking", "Stationary","Standing up (sitting)",
-                            "Bending (sitting)","Bending (standing)","Standing up (ground)",
+        self.activities = ["N/A", "Walking", "Stationary", "Sitting down","Standing up (sitting)",
+                            "Bending (sitting)","Bending (standing)",
                             "Falling (walking)","Standing up (ground)","Falling (standing)"]
 
     def normalise(self):

@@ -9,7 +9,7 @@ optimizer: Adam
 weight_decay: 1e-5
 normal: False
 sequential: True
-num_class: 9
+num_class: 10
 experiment_folder: 'test/'
 dataset: ${experiment_folder}data/
 input_dim: 4

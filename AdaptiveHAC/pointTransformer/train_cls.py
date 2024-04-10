@@ -5,6 +5,7 @@ modified by zhongyuan
 from AdaptiveHAC.pointTransformer.dataset import ModelNetDataLoader, PCModelNetDataLoader
 import numpy as np
 import os
+os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 import torch
 import logging
 from tqdm import tqdm
@@ -48,6 +49,7 @@ def main(args):
     if isinstance(args, list):
         PC = args[1]
         args = args[0]
+        args.input_dim = PC[0][0].data.shape[1]
     elif isinstance(args, omegaconf.dictconfig.DictConfig):  
         PC = None  
         omegaconf.OmegaConf.set_struct(args, False)
@@ -82,7 +84,7 @@ def main(args):
         classifier = torch.nn.DataParallel(classifier)
     classifier = classifier.to(device)
     # print(classifier)
-    criterion = torch.nn.CrossEntropyLoss()
+    criterion = torch.nn.CrossEntropyLoss(torch.FloatTensor([0,1,1,1,1,1,1,1,1,1]).to(device))
 
     try:
         checkpoint = torch.load('best_model.pth')

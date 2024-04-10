@@ -5,7 +5,7 @@ class PointCloud:
     def __init__(self, data, label):
         self.data = data
         self.label = label
-        self.mean_label = int(stats.mode(label, axis=1))
+        self.mean_label = stats.mode(label, axis=1)[0][0]
         self.PRF = 122
         self.activities = ["N/A", "Walking", "Stationary", "Sitting down","Standing up (sitting)",
                             "Bending (sitting)","Bending (standing)",

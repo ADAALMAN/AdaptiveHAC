@@ -128,7 +128,7 @@ def main(args):
     #PC_processing.save_PC(f'./seg_th_{seg_th}/', samples_PC, labels) #needs to be updated for single node
 
     PT_args = load_PT_config(args.PT_config_path)
-    #train_cls.main([PT_args, samples_PC])
+    train_cls.main([PT_args, samples_PC])
 
 if __name__ == '__main__':
     main()

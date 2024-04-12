@@ -106,7 +106,7 @@ def main(args):
                     j = j + samples[i].shape[1]
                 features["PBC"] = PBCs
             case "time":
-                pass
+                return
                 #dict["time"]
         
     npoints = 1024

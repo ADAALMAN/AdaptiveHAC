@@ -15,7 +15,7 @@ os.environ['HYDRA_FULL_ERROR'] = '1'
 def load_data(path, file_name = None):
     # load data file with the matlab engine and unpack data
     if file_name != None:
-        mat = sci.loadmat(f'{path}/{file_name}.mat')
+        mat = sci.loadmat(f'{path}/{file_name}')
         data = np.asarray(mat['hil_resha_aligned'], dtype=np.complex64) # reduce data in memory
         lbl = np.asarray(mat['lbl_out'])
 
@@ -41,17 +41,10 @@ def load_PT_config(PT_config_path):
     dict_args = argparse.Namespace(**dict_args)
     dict_args.experiment_folder = './'
     return dict_args
-
-#@profile
-@hydra.main(config_path="conf", config_name="paramsweep", version_base='1.3')
-def main(args):
+    
+def process(args, file_name):
     omegaconf.OmegaConf.set_struct(args, False)
     data_path = hydra.utils.to_absolute_path(args.data_path)
-    
-    # data path
-    #path = 'W:/staff-groups/ewi/me/MS3/MS3-Shared/Ronny_MonostaticData/Nicolas/MAT_data_aligned/'
-    #file_name = '002_mon_Wal_Nic'
-    file_name = '029_mon_Mix_Nic'
     
     match args.node_method:
         case "all":
@@ -127,13 +120,27 @@ def main(args):
             else:
                 samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, processing_eng)        
     
-    del(samples)
-    os.mkdir(f'./seg_th_{seg_th}/')
-    #PC_processing.save_PC_txt(f'./seg_th_{seg_th}/', samples_PC, labels) #needs to be updated for single node
-
+    return samples_PC
+    
+#@profile
+@hydra.main(config_path="conf", config_name="paramsweep", version_base='1.3')
+def main(args):
+    omegaconf.OmegaConf.set_struct(args, False)
+    data_path = hydra.utils.to_absolute_path(args.data_path)
+    # data path
+    PC_dataset = []
+    for file in os.listdir(data_path):
+        if file.endswith(".mat"):
+            samples_PC = process(args, file)
+            PC_dataset.extend(samples_PC)
+            print(len(PC_dataset))
+    
+    import pickle
+    with open('data.pkl', 'wb') as output:
+        pickle.dump(PC_dataset, output)  
+              
     PT_args = load_PT_config(args.PT_config_path)
     train_cls.main([PT_args, samples_PC])
-
+    
 if __name__ == '__main__':
     main()
-    #train_cls.main()

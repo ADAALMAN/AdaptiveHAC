@@ -83,7 +83,6 @@ def SNsegmentation(data, lbl, eng, root): # single node segmentation
     plt.title('Spectrogram')
     
     data_len = data.shape[1]
-    
 
     entropy = np.asarray(eng.renyi(spectrogram, nargout=1))
     PBC = np.asarray(eng.pbc(spectrogram, nargout=1))

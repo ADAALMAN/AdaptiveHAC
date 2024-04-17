@@ -43,7 +43,7 @@ def load_PT_config(PT_config_path):
     return dict_args
 
 #@profile
-@hydra.main(config_path="conf", config_name="paramsweep", version_base='1.1')
+@hydra.main(config_path="conf", config_name="paramsweep", version_base='1.3')
 def main(args):
     omegaconf.OmegaConf.set_struct(args, False)
     data_path = hydra.utils.to_absolute_path(args.data_path)
@@ -113,14 +113,20 @@ def main(args):
     thr = 0.8
     match args.subsegmentation:
         case "fixed-amount":
-            chunks = 6
-            features = []
+            param = 6 # amount of subsegments
             processing_eng = PC_processing.init_matlab(args.root)
             if isinstance(args.node_method, int):
-                samples_PC = PC_processing.SNPC_generation(samples, args.subsegmentation, chunks, npoints, thr, features, labels, processing_eng)
+                samples_PC = PC_processing.SNPC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, processing_eng)
             else:
-                samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, chunks, npoints, thr, features, labels, processing_eng)
+                samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, processing_eng)
         case "fixed-length":
+            param = 20 # subsegment length
+            processing_eng = PC_processing.init_matlab(args.root)
+            if isinstance(args.node_method, int):
+                samples_PC = PC_processing.SNPC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, processing_eng)
+            else:
+                samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, processing_eng)
+
             return
     
     del(samples)

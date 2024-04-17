@@ -20,6 +20,4 @@ hydra:
     subdir: ${hydra.job.num}
   sweeper:
     params:
-      sample_method: windowing,segmentation
-      node_method: all,0 # the numbers are the nodes (0-4)
-      subsegmentation: fixed-amount,fixed-length
+      features: "[entropy, PBC, time], [entropy], [PBC], [time], [entropy, PBC], [entropy, time], [PBC, time]"

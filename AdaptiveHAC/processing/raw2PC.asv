@@ -25,24 +25,22 @@ end
 
 PC_raw = [];
 
-for iNode = 1:1:size(raw,3)
-    if strcmp(subsegmentation, "fixed-amount")
+for iNode = 1:size(raw,3)
+    if subsegmentation == "fixed-amount"
         chunks = param;
         split_idx = int32([1:size(raw,2)/chunks:size(raw,2),size(raw,2)]);      % We split the raw segment into CHUNKS subsegments
-    elseif strcmp(subsegmentation, "fixed-length")
+    elseif subsegmentation == "fixed-length"
         sublength = param;
-        disp(size(raw,2))
-        for i = 1:int32(size(raw,2)/sublength+1)
-            if (i-1)*sublength > size(raw,2)
-               split_idx(i) = int32(size(raw,2));
+        for i = 1:int(size(raw,2)/sublength)
+            if i*sublength > size(raw,2)
+               split_idx(i) = int32([(i-1)*sublength, i*sublength]);
             else
-                split_idx(i) = int32((i-1)*sublength+1);
+                split_idx(i) = int32([(i-1)*sublength, i*sublength]);
             end
         end
-        disp(split_idx)
     end
     
-    for ch = 1:length(split_idx)
+    for ch = 1:chunks
         dat_split{ch}=raw(:,split_idx(ch):split_idx(ch+1),iNode);           
         if nnz(dat_split{ch})==0; continue; end
         dat_FFT{ch} = db(fftshift(fft(dat_split{ch},[],2),2));              % We take the FFT to create range-Doppler (RD) representations

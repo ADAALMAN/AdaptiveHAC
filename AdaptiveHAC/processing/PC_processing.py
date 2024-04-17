@@ -70,7 +70,7 @@ def SNsample(data, lbl, sample_size = 'default'):
     return samples, labels
 
 @timing_decorator.timing_decorator
-def PC_generation(samples, subsegmentation, chunks, npoints, thr, features, labels, eng):
+def PC_generation(samples, subsegmentation, param, npoints, thr, features, labels, eng):
     print('Starting processing')
     # process individual samples
     samples_PC = []
@@ -80,7 +80,7 @@ def PC_generation(samples, subsegmentation, chunks, npoints, thr, features, labe
         for node in range(sample.shape[2]):
             PC = PointCloud.PointCloud(np.asarray(eng.raw2PC(sample[:,:,node], 
                                                             subsegmentation,
-                                                            matlab.double(chunks), 
+                                                            matlab.double(param), 
                                                             matlab.double(npoints), 
                                                             matlab.double(thr),
                                                             features)),
@@ -90,14 +90,14 @@ def PC_generation(samples, subsegmentation, chunks, npoints, thr, features, labe
         samples_PC.append(node_PC)
     return samples_PC
 
-def SNPC_generation(samples, subsegmentation, chunks, npoints, thr, features, labels, eng):
+def SNPC_generation(samples, subsegmentation, param, npoints, thr, features, labels, eng):
     print('Starting processing')
     # process individual samples
     samples_PC = []
     for sample, label in zip(samples, labels):
         PC = PointCloud.PointCloud(np.asarray(eng.raw2PC(sample[:,:], 
                                                         subsegmentation,
-                                                        matlab.double(chunks), 
+                                                        matlab.double(param), 
                                                         matlab.double(npoints), 
                                                         matlab.double(thr),
                                                         features)),

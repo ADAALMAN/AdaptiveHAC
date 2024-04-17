@@ -125,9 +125,7 @@ def main(args):
             if isinstance(args.node_method, int):
                 samples_PC = PC_processing.SNPC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, processing_eng)
             else:
-                samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, processing_eng)
-
-            return
+                samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, processing_eng)        
     
     del(samples)
     os.mkdir(f'./seg_th_{seg_th}/')

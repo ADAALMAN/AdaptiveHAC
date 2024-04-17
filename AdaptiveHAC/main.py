@@ -129,7 +129,7 @@ def main(args):
     
     del(samples)
     os.mkdir(f'./seg_th_{seg_th}/')
-    #PC_processing.save_PC(f'./seg_th_{seg_th}/', samples_PC, labels) #needs to be updated for single node
+    #PC_processing.save_PC_txt(f'./seg_th_{seg_th}/', samples_PC, labels) #needs to be updated for single node
 
     PT_args = load_PT_config(args.PT_config_path)
     train_cls.main([PT_args, samples_PC])

@@ -12,7 +12,7 @@ def init_matlab(root):
     return eng
 
 @timing_decorator.timing_decorator
-def save_PC(dir, PC, labels):
+def save_PC_txt(dir, PC, labels):
     activities = ['na','wlk','stat','sitdn','stupsit','bfrsit','bfrstand','ffw','stup','ffs']
     for act in activities:
         if os.path.isdir(f'{dir}/{act}') == False:

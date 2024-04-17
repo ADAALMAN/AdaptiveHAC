@@ -55,8 +55,9 @@ def segmentation(data, lbl, eng, root): # multinode segmentation
     plt.plot(np.linspace(0, t.size[1], num=t.size[1]), s_avg*np.max(entropy[:,0]))
     plt.plot(np.linspace(0, t.size[1], num=t.size[1]), entropy[:,0][:,np.newaxis])
     plt.title('Lag')
-    #plt.show()
-
+    plt.show(block=False)
+    plt.close('all')
+    
     tr_avg = eng.sig2timestamp(s_avg, np.linspace(0, data_len-1, num=data_len), nargout=1)   
 
     H_avg_score = H_score(tr_avg, lbl, data_len, eng)
@@ -102,8 +103,9 @@ def SNsegmentation(data, lbl, eng, root): # single node segmentation
     plt.plot(np.linspace(0, t.size[1], num=t.size[1]), s_avg*np.max(entropy[:,0]))
     plt.plot(np.linspace(0, t.size[1], num=t.size[1]), entropy[:,0][:,np.newaxis])
     plt.title('Lag')
-    #plt.show()
-
+    plt.show(block=False)
+    plt.close('all')
+    
     tr_avg = eng.sig2timestamp(s_avg, np.linspace(0, data_len-1, num=data_len), nargout=1)   
 
     H_avg_score = H_score(tr_avg, lbl, data_len, eng)

@@ -33,16 +33,16 @@ for iNode = 1:1:size(raw,3)
         sublength = param;
         disp(size(raw,2))
         for i = 1:int32(size(raw,2)/sublength+1)
-            if (i-1)*sublength > size(raw,2)
-               split_idx(i) = int32(size(raw,2));
+            if (i-1)*sublength+1 > size(raw,2)
+               split_idx(i-1) = int32(size(raw,2)); % add last index
             else
-                split_idx(i) = int32((i-1)*sublength+1);
+                split_idx(i) = int32((i-1)*sublength+1); % add index 
             end
         end
         disp(split_idx)
     end
     
-    for ch = 1:length(split_idx)
+    for ch = 1:length(split_idx)-1
         dat_split{ch}=raw(:,split_idx(ch):split_idx(ch+1),iNode);           
         if nnz(dat_split{ch})==0; continue; end
         dat_FFT{ch} = db(fftshift(fft(dat_split{ch},[],2),2));              % We take the FFT to create range-Doppler (RD) representations

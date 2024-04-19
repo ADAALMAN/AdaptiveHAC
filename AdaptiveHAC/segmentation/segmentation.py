@@ -23,8 +23,6 @@ def H_score(tr_avg, lbl, data_len, eng):
     H_score_trans, _ = eng.perfFuncLinSeg(tr_avg, tr_GT,  data_len/180,nargout=2)
     return H_score
 
-    
-#@timing_decorator.timing_decorator
 def segmentation(data, lbl, eng, root): # multinode segmentation
     
     # create spectrogram
@@ -120,7 +118,6 @@ def SNsegmentation(data, lbl, eng, root): # single node segmentation
         labels.append(lbl[:,int(index[i]):int(index[i+1])])
     return segments, labels, H_avg_score, entropy_avg, PBC_avg
 
-@timing_decorator.timing_decorator
 def segmentation_thresholding(segments, labels, threshold, method="shortest"):
     match method:
         case "split":

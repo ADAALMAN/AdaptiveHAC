@@ -1,3 +1,4 @@
+from types import NoneType
 import matlab.engine
 import numpy as np
 import os, sys
@@ -11,7 +12,6 @@ def init_matlab(root):
     eng.addpath(f'{root}/processing')
     return eng
 
-@timing_decorator.timing_decorator
 def save_PC_txt(dir, PC, labels):
     activities = ['na','wlk','stat','sitdn','stupsit','bfrsit','bfrstand','ffw','stup','ffs']
     for act in activities:
@@ -28,7 +28,6 @@ def save_PC_txt(dir, PC, labels):
             np.savetxt(f'{dir}/{sample_act}/{sample_act}_{i+1}.txt', node.normalise().data, fmt='%f')
     return
 
-@timing_decorator.timing_decorator
 def sample(data, lbl, sample_size = 'default'):
     # split sequence into samples
     samples = []
@@ -69,12 +68,10 @@ def SNsample(data, lbl, sample_size = 'default'):
     del(data) # cleanup
     return samples, labels
 
-@timing_decorator.timing_decorator
 def PC_generation(samples, subsegmentation, param, npoints, thr, features, labels, eng):
-    print('Starting processing')
     # process individual samples
     samples_PC = []
-    for sample, label in zip(samples, labels):
+    for i, (sample, label) in enumerate(zip(samples, labels)):
         node_PC = []
         # process individual nodes
         for node in range(sample.shape[2]):
@@ -83,15 +80,23 @@ def PC_generation(samples, subsegmentation, param, npoints, thr, features, label
                                                             matlab.double(param), 
                                                             matlab.double(npoints), 
                                                             matlab.double(thr),
-                                                            features)),
+                                                            ("standard" if not (features["time"]) else features["time"][:]))), # cant use i
                                        label) # point cloud generation
+            
+            if not features == False:
+                ft = []
+                for key, item in features.items():
+                    if key != "time":
+                        ft.append(features[key][i])
+                PC.add_features(ft)
+                
+            PC.normalise()
             #PC.visualise()
             node_PC.append(PC)
         samples_PC.append(node_PC)
     return samples_PC
 
 def SNPC_generation(samples, subsegmentation, param, npoints, thr, features, labels, eng):
-    print('Starting processing')
     # process individual samples
     samples_PC = []
     for sample, label in zip(samples, labels):

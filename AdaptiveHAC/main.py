@@ -4,14 +4,13 @@ from AdaptiveHAC.pointTransformer import train_cls
 from AdaptiveHAC.lib import timing_decorator
 from AdaptiveHAC.segmentation import segmentation
 from AdaptiveHAC.processing import PC_processing
-from memory_profiler import profile
 import scipy.io as sci
+from tqdm import tqdm
 np.set_printoptions(threshold=sys.maxsize)
 
 # initialize matlab
 os.environ['HYDRA_FULL_ERROR'] = '1'
 
-#@timing_decorator.timing_decorator
 def load_data(path, file_name = None):
     # load data file with the matlab engine and unpack data
     if file_name != None:
@@ -99,8 +98,7 @@ def process(args, file_name):
                     j = j + samples[i].shape[1]
                 features["PBC"] = PBCs
             case "time":
-                return
-                #dict["time"]
+                features["time"] = "sequence-based"
         
     npoints = 1024
     thr = 0.8
@@ -122,18 +120,16 @@ def process(args, file_name):
     
     return samples_PC
     
-#@profile
 @hydra.main(config_path="conf", config_name="paramsweep", version_base='1.3')
 def main(args):
     omegaconf.OmegaConf.set_struct(args, False)
     data_path = hydra.utils.to_absolute_path(args.data_path)
     # data path
     PC_dataset = []
-    for file in os.listdir(data_path):
+    for file in tqdm(os.listdir(data_path)):
         if file.endswith(".mat"):
             samples_PC = process(args, file)
             PC_dataset.extend(samples_PC)
-            print(len(PC_dataset))
     
     import pickle
     with open('data.pkl', 'wb') as output:

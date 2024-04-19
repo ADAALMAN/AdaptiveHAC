@@ -105,8 +105,16 @@ def SNPC_generation(samples, subsegmentation, param, npoints, thr, features, lab
                                                         matlab.double(param), 
                                                         matlab.double(npoints), 
                                                         matlab.double(thr),
-                                                        features)),
+                                                        (features["time"][:] if ("time" in features.keys()) else "standard"))),
                                     label) # point cloud generation
+        
+        if not features == False:
+            ft = []
+            for key in features.keys():
+                if key != "time":
+                    ft.append(features[key][i])
+            PC.add_features(ft)
+                
         PC.visualise()
         samples_PC.append(PC)
     return samples_PC

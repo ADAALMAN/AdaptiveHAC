@@ -82,7 +82,7 @@ def SNsegmentation(data, lbl, eng, root): # single node segmentation
     data_len = data.shape[1]
 
     entropy = np.asarray(eng.renyi(spectrogram, nargout=1))
-    PBC = np.asarray(eng.pbc(spectrogram, nargout=1))
+    PBC = np.asarray(eng.pbc(spectrogram, f'{root}/segmentation/config_monostatic_TUD.mat', nargout=1))
     plt.figure(1)
     plt.plot(np.linspace(0, t.size[1], num=t.size[1]), entropy[:,0][:,np.newaxis])
     plt.title('Entropy')

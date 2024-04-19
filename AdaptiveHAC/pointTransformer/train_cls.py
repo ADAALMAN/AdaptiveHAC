@@ -23,7 +23,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 path=os.getcwd()
 # dataset = 'MMA_xyzI'
 
-def test(model, loader, num_class): #num_class should change !!!
+def validate(model, loader, num_class): #num_class should change !!!
     mean_correct = []
     class_acc = np.zeros((num_class,3))
     for j, data in tqdm(enumerate(loader), total=len(loader)):
@@ -44,12 +44,29 @@ def test(model, loader, num_class): #num_class should change !!!
     instance_acc = np.mean(mean_correct)
     return instance_acc, class_acc
 
+def test(clf, dataloader):
+    classifier = clf.eval()
+    y_pred = torch.empty(0,dtype=torch.long).to(device)
+    y_true = torch.empty(0,dtype=torch.long).to(device)
+    idx = torch.empty(0,dtype=torch.long).to(device)
+    for batch_id, (input, targets, sample_idx) in enumerate(dataloader):
+        input, targets = input.float().requires_grad_().to(device), torch.squeeze(targets.long(),dim = 2).to(device)
+        out = classifier(input)
+        y_pred = torch.cat((y_pred,torch.argmax(out,2).flatten()))
+        y_true = torch.cat((y_true,targets.flatten()))
+        idx = torch.cat((idx,sample_idx.to(device).flatten()))
+        
+    return y_true.cpu().numpy(), y_pred.cpu().numpy(), idx.cpu().numpy()
+
 #@hydra.main(config_path='config', config_name='cls', version_base='1.1')
 def main(args):
     if isinstance(args, list):
         PC = args[1]
         args = args[0]
-        args.input_dim = PC[0][0].data.shape[1]
+        try:
+            args.input_dim = PC[0][0].data.shape[1]
+        except:
+            args.input_dim = PC[0].data.shape[1]
     elif isinstance(args, omegaconf.dictconfig.DictConfig):  
         PC = None  
         omegaconf.OmegaConf.set_struct(args, False)
@@ -153,14 +170,14 @@ def main(args):
 
         with torch.no_grad():
 
-            instance_train_accuracy, _ = test(classifier.eval(), trainDataLoader, args.num_class)
+            instance_train_accuracy, _ = validate(classifier.eval(), trainDataLoader, args.num_class)
             train_accuracy.append(instance_train_accuracy)
             logger.info('Train Instance Accuracy: %f' % instance_train_accuracy)
             logger.info('loss:%f'% loss)
 
 
 
-            instance_acc, class_acc = test(classifier.eval(), testDataLoader, args.num_class)
+            instance_acc, class_acc = validate(classifier.eval(), testDataLoader, args.num_class)
             test_accuracy.append(instance_acc)
             if (instance_acc >= best_instance_acc):
                 best_instance_acc = instance_acc
@@ -213,5 +230,6 @@ def main(args):
             f.write(str(acc))
             f.write(' ')
     logger.info('End of savetxt...')
+    
 if __name__ == '__main__':
     main()

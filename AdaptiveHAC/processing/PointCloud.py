@@ -14,8 +14,8 @@ class PointCloud:
 
     def add_features(self, features):
         for feature in features:
-            ft = np.full((1,self.data.shape[1]), fill_value=feature)
-            self.data.append(ft, axis=1)
+            ft = np.full((self.data.shape[0],1), fill_value=feature)
+            self.data = np.append(self.data, ft, axis=1)
             
     def normalise(self):
         (self.data[:, 0] - np.mean(self.data[:, 0])) / 480                         # range

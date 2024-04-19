@@ -80,12 +80,12 @@ def PC_generation(samples, subsegmentation, param, npoints, thr, features, label
                                                             matlab.double(param), 
                                                             matlab.double(npoints), 
                                                             matlab.double(thr),
-                                                            ("standard" if not (features["time"]) else features["time"][:]))), # cant use i
+                                                            (features["time"][:] if ("time" in features.keys()) else "standard"))), # cant use i
                                        label) # point cloud generation
             
             if not features == False:
                 ft = []
-                for key, item in features.items():
+                for key in features.keys():
                     if key != "time":
                         ft.append(features[key][i])
                 PC.add_features(ft)

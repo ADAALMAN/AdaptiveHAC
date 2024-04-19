@@ -126,7 +126,7 @@ def main(args):
     data_path = hydra.utils.to_absolute_path(args.data_path)
     # data path
     PC_dataset = []
-    for file in tqdm(os.listdir(data_path)):
+    for file in tqdm(os.listdir(data_path), total=len(os.listdir(data_path)), smoothing=0.9):
         if file.endswith(".mat"):
             samples_PC = process(args, file)
             PC_dataset.extend(samples_PC)

@@ -140,8 +140,7 @@ def main(args):
                 
         PT_args = load_PT_config(args.PT_config_path)
         TEST_PC, model = train_cls.main([PT_args, samples_PC])
-        y_true, y_test, idx = point_transformer.test(PT_args, model, TEST_PC)
-        print(1)
+        point_transformer.test(PT_args, model, args.fusion, TEST_PC)
     except Exception as error:
         logger.exception(error)
 

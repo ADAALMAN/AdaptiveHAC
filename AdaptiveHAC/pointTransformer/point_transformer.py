@@ -1,16 +1,18 @@
 import torch
 import os
 import importlib
+import numpy as np
 from tqdm import tqdm
 from AdaptiveHAC.pointTransformer import provider
 from AdaptiveHAC.processing.PointCloud import PointCloud
 from AdaptiveHAC.pointTransformer.dataset import ModelNetDataLoader, PCModelNetDataLoader
 import logging
+from scipy import stats
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 path=os.getcwd()
 
-def test(args, model, TEST_PC):
+def test(args, model, fusion, TEST_PC):
     
     if isinstance(model, str):
         # import model from directory
@@ -23,18 +25,36 @@ def test(args, model, TEST_PC):
         classifier = classifier.eval()
     else:
         classifier = model.eval()
-        
-    TEST_DATASET = PCModelNetDataLoader(PC=TEST_PC, npoint=args.num_point)
-    testDataLoader = torch.utils.data.DataLoader(TEST_DATASET, batch_size=args.batch_size, shuffle=False, num_workers=4)
     
-    y_pred = torch.empty(0,dtype=torch.long).to(device)
-    y_true = torch.empty(0,dtype=torch.long).to(device)
-    idx = torch.empty(0,dtype=torch.long).to(device)
-    for batch_id, (input, targets, sample_idx) in enumerate(testDataLoader):
-        input, targets = input.float().requires_grad_().to(device), torch.squeeze(targets.long(),dim = 2).to(device)
-        out = classifier(input)
-        y_pred = torch.cat((y_pred,torch.argmax(out,2).flatten()))
-        y_true = torch.cat((y_true,targets.flatten()))
-        idx = torch.cat((idx,sample_idx.to(device).flatten()))
+    pred_all = []
+    true_all = []
+    # classify segments
+    for dataset in TEST_PC:
+            
+        TEST_DATASET = PCModelNetDataLoader(PC=dataset, npoint=args.num_point)
+        testDataLoader = torch.utils.data.DataLoader(TEST_DATASET, batch_size=args.batch_size, shuffle=False, num_workers=4)
+    
+        nodes_pred = []
+        class_acc = np.zeros((len(dataset[0].activities),3))
         
-    return y_true.cpu().numpy(), y_pred.cpu().numpy(), idx.cpu().numpy()
+        # classify nodes
+        for j, data in tqdm(enumerate(testDataLoader), total=len(testDataLoader)):
+            points, target = data
+            target = target[:, 0]
+            points, target = points.to(device), target.to(device)
+
+            pred = classifier(points)
+            nodes_pred.extend(pred, axis=1)
+            
+        true = dataset[0].mean_label
+            
+        match fusion:
+            case "none":
+                pred_choice = pred.data.max(1)[1]
+                pred_cls = stats.mode(pred_choice.cpu())[0]
+            case "softmax":
+                
+                pred_choice = pred.data.max(1)[1]
+                pred_cls = stats.mode(pred_choice.cpu())[0]
+        
+    return

@@ -115,7 +115,7 @@ def SNPC_generation(samples, subsegmentation, param, npoints, thr, features, lab
                     ft.append(features[key][i])
             PC.add_features(ft)
                 
-        PC.visualise()
+        #PC.visualise()
         samples_PC.append(PC)
     return samples_PC
 

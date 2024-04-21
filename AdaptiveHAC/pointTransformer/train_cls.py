@@ -44,20 +44,6 @@ def validate(model, loader, num_class): #num_class should change !!!
     instance_acc = np.mean(mean_correct)
     return instance_acc, class_acc
 
-def test(clf, dataloader):
-    classifier = clf.eval()
-    y_pred = torch.empty(0,dtype=torch.long).to(device)
-    y_true = torch.empty(0,dtype=torch.long).to(device)
-    idx = torch.empty(0,dtype=torch.long).to(device)
-    for batch_id, (input, targets, sample_idx) in enumerate(dataloader):
-        input, targets = input.float().requires_grad_().to(device), torch.squeeze(targets.long(),dim = 2).to(device)
-        out = classifier(input)
-        y_pred = torch.cat((y_pred,torch.argmax(out,2).flatten()))
-        y_true = torch.cat((y_true,targets.flatten()))
-        idx = torch.cat((idx,sample_idx.to(device).flatten()))
-        
-    return y_true.cpu().numpy(), y_pred.cpu().numpy(), idx.cpu().numpy()
-
 #@hydra.main(config_path='config', config_name='cls', version_base='1.1')
 def main(args):
     if isinstance(args, list):
@@ -65,8 +51,11 @@ def main(args):
         args = args[0]
         try:
             args.input_dim = PC[0][0].data.shape[1]
+            PC_type = "multiple_nodes"
         except:
             args.input_dim = PC[0].data.shape[1]
+            PC_type = "single_node"
+        
     elif isinstance(args, omegaconf.dictconfig.DictConfig):  
         PC = None  
         omegaconf.OmegaConf.set_struct(args, False)
@@ -79,9 +68,18 @@ def main(args):
 
     '''DATA LOADING'''
     logger.info('Load dataset ...')
+            
     if PC != None:
-        if isinstance(PC[0][0], PointCloud):
+        if PC_type == "single_node":
             TRAIN_PC, TEST_PC = train_test_split(PC, train_size=0.8, shuffle=True)
+            TRAIN_DATASET = PCModelNetDataLoader(PC=TRAIN_PC, npoint=args.num_point)
+            TEST_DATASET = PCModelNetDataLoader(PC=TEST_PC, npoint=args.num_point)
+        elif PC_type == "multiple_nodes":
+            PC_all = []
+            for i in PC:
+                PC_all.extend(i)
+                
+            TRAIN_PC, TEST_PC = train_test_split(PC_all, train_size=0.8, shuffle=True)
             TRAIN_DATASET = PCModelNetDataLoader(PC=TRAIN_PC, npoint=args.num_point)
             TEST_DATASET = PCModelNetDataLoader(PC=TEST_PC, npoint=args.num_point)
     else:
@@ -230,6 +228,8 @@ def main(args):
             f.write(str(acc))
             f.write(' ')
     logger.info('End of savetxt...')
+    
+    return TEST_PC, classifier.eval()
     
 if __name__ == '__main__':
     main()

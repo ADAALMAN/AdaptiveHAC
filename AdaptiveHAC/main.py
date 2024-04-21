@@ -1,6 +1,6 @@
 import numpy as np
-import os, sys, hydra, omegaconf, yaml, argparse
-from AdaptiveHAC.pointTransformer import train_cls
+import os, sys, hydra, omegaconf, yaml, argparse, logging
+from AdaptiveHAC.pointTransformer import train_cls, point_transformer
 from AdaptiveHAC.lib import timing_decorator
 from AdaptiveHAC.segmentation import segmentation
 from AdaptiveHAC.processing import PC_processing
@@ -124,19 +124,26 @@ def process(args, file_name):
 def main(args):
     omegaconf.OmegaConf.set_struct(args, False)
     data_path = hydra.utils.to_absolute_path(args.data_path)
-    # data path
+    
+    logger = logging.getLogger(__name__)
+    logger.info(args)
     PC_dataset = []
-    for file in tqdm(os.listdir(data_path), total=len(os.listdir(data_path)), smoothing=0.9):
-        if file.endswith(".mat"):
-            samples_PC = process(args, file)
-            PC_dataset.extend(samples_PC)
-    
-    import pickle
-    with open('data.pkl', 'wb') as output:
-        pickle.dump(PC_dataset, output)  
-              
-    PT_args = load_PT_config(args.PT_config_path)
-    train_cls.main([PT_args, samples_PC])
-    
+    try:
+        for file in tqdm(os.listdir(data_path), total=len(os.listdir(data_path)), smoothing=0.9):
+            if file.endswith(".mat"):
+                samples_PC = process(args, file)
+                PC_dataset.extend(samples_PC)
+        
+        import pickle
+        with open('data.pkl', 'wb') as output:
+            pickle.dump(PC_dataset, output)  
+                
+        PT_args = load_PT_config(args.PT_config_path)
+        TEST_PC, model = train_cls.main([PT_args, samples_PC])
+        y_true, y_test, idx = point_transformer.test(PT_args, model, TEST_PC)
+        print(1)
+    except Exception as error:
+        logger.exception(error)
+
 if __name__ == '__main__':
     main()

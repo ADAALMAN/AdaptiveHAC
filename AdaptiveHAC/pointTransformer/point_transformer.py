@@ -32,7 +32,7 @@ def test(args, model, fusion, TEST_PC):
     y_pred_all = []
     y_true_all = []
     # classify segments
-    for dataset in TEST_PC:
+    for dataset in tqdm(TEST_PC, total=len(TEST_PC)):
             
         TEST_DATASET = PCModelNetDataLoader(PC=dataset, npoint=args.num_point)
         testDataLoader = torch.utils.data.DataLoader(TEST_DATASET, batch_size=args.batch_size, shuffle=False, num_workers=4)
@@ -45,7 +45,7 @@ def test(args, model, fusion, TEST_PC):
             y_true = dataset[0].mean_label
         
         # classify nodes
-        for j, data in tqdm(enumerate(testDataLoader), total=len(testDataLoader)):
+        for j, data in enumerate(testDataLoader):
             points, target = data
             target = target[:, 0]
             points, target = points.to(device), target.to(device)

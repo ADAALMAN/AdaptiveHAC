@@ -1,5 +1,4 @@
-from AdaptiveHAC.pointTransformer import point_transformer
-from AdaptiveHAC.pointTransformer.point_transformer import PointCloud
+from AdaptiveHAC.processing.PointCloud import PointCloud
 import numpy as np
 import os
 from torch.utils.data import Dataset

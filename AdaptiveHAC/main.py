@@ -140,7 +140,14 @@ def main(args):
                 
         PT_args = load_PT_config(args.PT_config_path)
         TEST_PC, model = train_cls.main([PT_args, samples_PC])
-        point_transformer.test(PT_args, model, args.fusion, TEST_PC)
+        logger.info("Testing on dataset...")
+        F1_scores, acc, balanced_acc = point_transformer.test(PT_args, model, args.fusion, TEST_PC)
+        
+        if len(F1_scores) == 1:
+            logger.info(f"Fused: F1 score: {F1_scores}, accuracy: {acc}, balanced accuracy: {balanced_acc}")
+        else: 
+            logger.info("\n".join([f"Node {i}: F1 score: {F1_scores[i]}, accuracy: {acc[i]}, balanced accuracy: {balanced_acc[i]}" for i in range(len(F1_scores))]))
+                
     except Exception as error:
         logger.exception(error)
 

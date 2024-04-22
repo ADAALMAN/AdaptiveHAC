@@ -8,7 +8,8 @@ from AdaptiveHAC.processing.PointCloud import PointCloud
 from AdaptiveHAC.pointTransformer.dataset import ModelNetDataLoader, PCModelNetDataLoader
 import logging
 from scipy import stats
-from sklearn.metrics import ConfusionMatrixDisplay
+from sklearn import metrics
+import matplotlib.pyplot as plt
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 path=os.getcwd()
@@ -27,8 +28,8 @@ def test(args, model, fusion, TEST_PC):
     else:
         classifier = model.eval()
     
-    pred_all = []
-    true_all = []
+    y_pred_all = []
+    y_true_all = []
     # classify segments
     for dataset in TEST_PC:
             
@@ -51,21 +52,34 @@ def test(args, model, fusion, TEST_PC):
                 pred_choice = pred.data.max(1)[1]
                 pred_choice = np.asarray(pred_choice.cpu())[:, np.newaxis].T
                 pred_cls = stats.mode(pred_choice)
-                pred_all.extend(pred_choice)
+                y_pred_all.extend(pred_choice)
             case "softmax":
                 pred_choice = pred.sum(dim=0)
                 pred_choice = pred_choice.data.max(0)[1]
-                pred_choice = np.asarray(pred_choice.cpu())[:, np.newaxis].T
-                pred_all.extend(pred_choice)
+                pred_choice = np.asarray(pred_choice.cpu()).T
+                y_pred_all.append(pred_choice)
         
-        true = dataset[0].mean_label
-        true_all.append(true)
+        y_true = dataset[0].mean_label
+        y_true_all.append(y_true)
         
-    pred_all = np.asarray(pred_all)
-    true_all = np.asarray(true_all)
-    np.save(os.path.join(args.experiment_folder +'test_pred.npy'), pred_all)
-    np.save(os.path.join(args.experiment_folder +'test_true.npy'), true_all)
+    y_pred_all = np.asarray(y_pred_all)
+    if y_pred_all.ndim == 1:
+        y_pred_all = y_pred_all[:,np.newaxis]
+    y_true_all = np.asarray(y_true_all)[:,np.newaxis]
+    np.save(os.path.join(args.experiment_folder +'test_pred.npy'), y_pred_all)
+    np.save(os.path.join(args.experiment_folder +'test_true.npy'), y_true_all)
     
-    for i in range(pred_all.shape[1]):
-        ConfusionMatrixDisplay.from_predictions(true_all[:,np.newaxis], pred_all[:,i][:,np.newaxis], labels=activities)
-    return
+    F1_scores = []
+    acc = []
+    balanced_acc = []
+    for i in range(y_pred_all.shape[1]):
+        F1_scores.append(metrics.f1_score(y_true=y_true_all, y_pred=y_pred_all[:,i][:,np.newaxis], average="macro"))
+        acc.append(metrics.accuracy_score(y_true=y_true_all, y_pred=y_pred_all[:,i][:,np.newaxis], normalize=True))
+        balanced_acc.append(metrics.accuracy_score(y_true=y_true_all, y_pred=y_pred_all[:,i][:,np.newaxis]))
+        plt.close("all")
+        metrics.ConfusionMatrixDisplay.from_predictions(y_true=y_true_all, y_pred=y_pred_all[:,i][:,np.newaxis], 
+                                                labels=np.arange(len(activities)), xticks_rotation=90, display_labels=activities, 
+                                                cmap=plt.cm.Blues)
+        plt.title("Fused" if fusion != "none" else f"Node: {i}")
+        plt.savefig("conf_matrix_fused.jpg" if fusion != "none" else f"conf_matrix_node_{i}.jpg", bbox_inches='tight')
+    return F1_scores, acc, balanced_acc

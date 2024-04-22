@@ -57,10 +57,10 @@ class ModelNetDataLoader(Dataset):
 
 class PCModelNetDataLoader(Dataset):
     def __init__(self, PC, npoint=1024, cache_size=15000):
-        if isinstance(PC[0], PointCloud):
+        if isinstance(PC, PointCloud):
+            act = PC.activities
+        elif isinstance(PC[0], PointCloud):
             act = PC[0].activities
-        elif isinstance(PC[0][0], PointCloud):
-            act = PC[0][0].activities
         self.classes = dict(zip(act, range(len(act))))
         self.npoint = npoint
         self.cache_size = cache_size

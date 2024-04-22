@@ -59,20 +59,27 @@ class PCModelNetDataLoader(Dataset):
     def __init__(self, PC, npoint=1024, cache_size=15000):
         if isinstance(PC, PointCloud):
             act = PC.activities
+            self.node_amount = 1
         elif isinstance(PC[0], PointCloud):
             act = PC[0].activities
+            self.node_amount = len(PC)
         self.classes = dict(zip(act, range(len(act))))
         self.npoint = npoint
         self.cache_size = cache_size
         self.PC = PC
         
     def __len__(self):
-        return len(self.PC)
+        return self.node_amount
     
     def __getitem__(self, index):
-        cls = self.PC[index].mean_label
-        cls = torch.from_numpy(np.array([cls]).astype(np.int32)) 
-        point_set = torch.from_numpy(self.PC[index].data[:,:].astype(np.float32)) # need workaround for [0]
+        if isinstance(self.PC, PointCloud):
+            cls = self.PC.mean_label
+            cls = torch.from_numpy(np.array([cls]).astype(np.int32)) 
+            point_set = torch.from_numpy(self.PC.data[:,:].astype(np.float32)) # need workaround for [0]
+        elif isinstance(self.PC[index], PointCloud):
+            cls = self.PC[index].mean_label
+            cls = torch.from_numpy(np.array([cls]).astype(np.int32)) 
+            point_set = torch.from_numpy(self.PC[index].data[:,:].astype(np.float32))
         return point_set, cls
     
 class SeqModelNetDataLoader(Dataset):

@@ -36,8 +36,12 @@ def test(args, model, fusion, TEST_PC):
         TEST_DATASET = PCModelNetDataLoader(PC=dataset, npoint=args.num_point)
         testDataLoader = torch.utils.data.DataLoader(TEST_DATASET, batch_size=args.batch_size, shuffle=False, num_workers=4)
     
-        nodes_pred = []
-        activities = dataset[0].activities
+        if isinstance(dataset, PointCloud):
+            activities = dataset.activities
+            y_true = dataset.mean_label
+        elif isinstance(dataset[0], PointCloud):
+            activities = dataset[0].activities
+            y_true = dataset[0].mean_label
         
         # classify nodes
         for j, data in tqdm(enumerate(testDataLoader), total=len(testDataLoader)):
@@ -59,7 +63,6 @@ def test(args, model, fusion, TEST_PC):
                 pred_choice = np.asarray(pred_choice.cpu()).T
                 y_pred_all.append(pred_choice)
         
-        y_true = dataset[0].mean_label
         y_true_all.append(y_true)
         
     y_pred_all = np.asarray(y_pred_all)

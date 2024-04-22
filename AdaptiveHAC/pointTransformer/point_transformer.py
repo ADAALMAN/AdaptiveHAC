@@ -8,6 +8,7 @@ from AdaptiveHAC.processing.PointCloud import PointCloud
 from AdaptiveHAC.pointTransformer.dataset import ModelNetDataLoader, PCModelNetDataLoader
 import logging
 from scipy import stats
+from sklearn.metrics import ConfusionMatrixDisplay
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 path=os.getcwd()
@@ -35,7 +36,7 @@ def test(args, model, fusion, TEST_PC):
         testDataLoader = torch.utils.data.DataLoader(TEST_DATASET, batch_size=args.batch_size, shuffle=False, num_workers=4)
     
         nodes_pred = []
-        class_acc = np.zeros((len(dataset[0].activities),3))
+        activities = dataset[0].activities
         
         # classify nodes
         for j, data in tqdm(enumerate(testDataLoader), total=len(testDataLoader)):
@@ -44,17 +45,27 @@ def test(args, model, fusion, TEST_PC):
             points, target = points.to(device), target.to(device)
 
             pred = classifier(points)
-            nodes_pred.extend(pred, axis=1)
-            
-        true = dataset[0].mean_label
-            
+                
         match fusion:
             case "none":
                 pred_choice = pred.data.max(1)[1]
-                pred_cls = stats.mode(pred_choice.cpu())[0]
+                pred_choice = np.asarray(pred_choice.cpu())[:, np.newaxis].T
+                pred_cls = stats.mode(pred_choice)
+                pred_all.extend(pred_choice)
             case "softmax":
-                
-                pred_choice = pred.data.max(1)[1]
-                pred_cls = stats.mode(pred_choice.cpu())[0]
+                pred_choice = pred.sum(dim=0)
+                pred_choice = pred_choice.data.max(0)[1]
+                pred_choice = np.asarray(pred_choice.cpu())[:, np.newaxis].T
+                pred_all.extend(pred_choice)
         
+        true = dataset[0].mean_label
+        true_all.append(true)
+        
+    pred_all = np.asarray(pred_all)
+    true_all = np.asarray(true_all)
+    np.save(os.path.join(args.experiment_folder +'test_pred.npy'), pred_all)
+    np.save(os.path.join(args.experiment_folder +'test_true.npy'), true_all)
+    
+    for i in range(pred_all.shape[1]):
+        ConfusionMatrixDisplay.from_predictions(true_all[:,np.newaxis], pred_all[:,i][:,np.newaxis], labels=activities)
     return

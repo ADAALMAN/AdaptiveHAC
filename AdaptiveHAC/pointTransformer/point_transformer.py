@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 path=os.getcwd()
+logger = logging.getLogger(__name__)
 
 def test(args, model, fusion, TEST_PC):
     

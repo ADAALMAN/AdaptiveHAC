@@ -1,3 +1,5 @@
+from AdaptiveHAC.pointTransformer import point_transformer
+from AdaptiveHAC.pointTransformer.point_transformer import PointCloud
 import numpy as np
 import os
 from torch.utils.data import Dataset
@@ -56,7 +58,10 @@ class ModelNetDataLoader(Dataset):
 
 class PCModelNetDataLoader(Dataset):
     def __init__(self, PC, npoint=1024, cache_size=15000):
-        act = PC[0].activities
+        if isinstance(PC[0], PointCloud):
+            act = PC[0].activities
+        elif isinstance(PC[0][0], PointCloud):
+            act = PC[0][0].activities
         self.classes = dict(zip(act, range(len(act))))
         self.npoint = npoint
         self.cache_size = cache_size

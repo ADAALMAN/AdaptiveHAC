@@ -3,7 +3,7 @@ import numpy as np
 import os
 from torch.utils.data import Dataset
 import torch
-
+import pickle
 
 class ModelNetDataLoader(Dataset):
     def __init__(self, root, npoint=1024, split='train', cache_size=15000):
@@ -56,7 +56,7 @@ class ModelNetDataLoader(Dataset):
         return self._get_item(index)
 
 class PCModelNetDataLoader(Dataset):
-    def __init__(self, PC, npoint=1024, cache_size=15000):
+    def __init__(self, npoint=1024, cache_size=15000):
         if isinstance(PC, PointCloud):
             act = PC.activities
             self.node_amount = 1
@@ -66,7 +66,7 @@ class PCModelNetDataLoader(Dataset):
         self.classes = dict(zip(act, range(len(act))))
         self.npoint = npoint
         self.cache_size = cache_size
-        self.PC = PC
+        self.PC = None
         
     def __len__(self):
         return self.node_amount
@@ -80,6 +80,35 @@ class PCModelNetDataLoader(Dataset):
             cls = self.PC[index].mean_label
             cls = torch.from_numpy(np.array([cls]).astype(np.int32)) 
             point_set = torch.from_numpy(self.PC[index].data[:,:].astype(np.float32))
+        return point_set, cls
+    
+class PCFileModelNetDataLoader(Dataset):
+    def __init__(self, PC_names, root, npoint=1024, cache_size=15000):
+        if isinstance(PC_names[0], str):
+            self.node_amount = 1
+        elif isinstance(PC_names[0][0], str):
+            self.node_amount = len(PC_names[0])
+        act = ["N/A", "Walking", "Stationary", "Sitting down","Standing up (sitting)",
+                "Bending (sitting)","Bending (standing)",
+                "Falling (walking)","Standing up (ground)","Falling (standing)"]
+        self.classes = dict(zip(act, range(len(act))))
+        self.npoint = npoint
+        self.cache_size = cache_size
+        self.PC_names = PC_names
+        self.root = root
+        
+    def __len__(self):
+        return self.node_amount
+    
+    def __getitem__(self, index):
+        if isinstance(self.PC_names[0], str):
+            cls = int(self.PC_names[index][7])
+            cls = torch.from_numpy(np.array([cls]).astype(np.int32)) 
+            point_set = torch.from_numpy(np.load(f"{self.root}/{self.PC_names[index]}.npy").astype(np.float32)) # need workaround for [0]
+        elif isinstance(self.PC_names[0][0], str):
+            cls = int(self.PC_names[index][0][7])
+            cls = torch.from_numpy(np.array([cls]).astype(np.int32)) 
+            point_set = torch.from_numpy(np.load(f"{self.root}/{self.PC_names[index]}.npy").astype(np.float32))
         return point_set, cls
     
 class SeqModelNetDataLoader(Dataset):

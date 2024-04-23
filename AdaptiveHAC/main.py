@@ -1,13 +1,13 @@
 import numpy as np
-import os, sys, hydra, omegaconf, yaml, argparse, logging
+import os, sys, hydra, omegaconf, yaml, argparse, logging, pickle
 from AdaptiveHAC.pointTransformer import train_cls, point_transformer
 from AdaptiveHAC.lib import timing_decorator
 from AdaptiveHAC.segmentation import segmentation
-from AdaptiveHAC.processing import PC_processing
+from AdaptiveHAC.processing import PC_processing, PointCloud
 import scipy.io as sci
 from tqdm import tqdm
-from memory_profiler import memory_usage
-import time
+from memory_profiler import memory_usage, profile
+import gc
 np.set_printoptions(threshold=sys.maxsize)
 
 # initialize matlab
@@ -120,7 +120,10 @@ def process(args, file_name):
             else:
                 samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, processing_eng)        
     
-    return samples_PC
+    segmentation_eng.quit()
+    processing_eng.quit()
+    gc.collect()
+    return np.asarray(samples_PC)
 
 def log_memory_usage(logger):
     """Logs the current memory usage."""
@@ -134,30 +137,33 @@ def main(args):
     
     logger = logging.getLogger(__name__)
     logger.info(args)
-    PC_dataset = []
-    try:
-        for file in tqdm(os.listdir(data_path), total=len(os.listdir(data_path)), smoothing=0.9):
-            if file.endswith(".mat"):
-                samples_PC = process(args, file)
-                PC_dataset.extend(samples_PC)
-                log_memory_usage(logger)
+    PC_names = []
+    os.mkdir("PC/")
+    for i, file in tqdm(enumerate(os.listdir(data_path)), total=len(os.listdir(data_path)), smoothing=0.9):
+        if file.endswith(".mat"):
+            samples_PC = process(args, file)
+            for j, PC in enumerate(samples_PC):
+                if isinstance(PC, PointCloud.PointCloud):
+                    np.save(f"PC/PC_cls_{PC.mean_label}_{i}_{j}", PC.data)
+                    PC_names.append(f"PC_cls_{PC.mean_label}_{i}_{j}")
+                else:
+                    PC_node_names = []
+                    for k, node in enumerate(PC):
+                        np.save(f"PC/PC_cls_{node.mean_label}_{i}_{j}_{k}", node.data)
+                        PC_node_names.append(f"PC_cls_{node.mean_label}_{i}_{j}_{k}")
+                    PC_names.append(PC_node_names)
 
-        import pickle
-        with open('data.pkl', 'wb') as output:
-            pickle.dump(PC_dataset, output)  
+    PT_args = load_PT_config(args.PT_config_path)
+    PC_path = f"{os.getcwd()}/PC/"
+    TEST_PC, model = train_cls.main([PT_args, PC_names, PC_path])
+    """logger.info("Testing on dataset...")
+    F1_scores, acc, balanced_acc = point_transformer.test(PT_args, model, args.fusion, TEST_PC)
+    
+    if args.fusion != "none":
+        logger.info(f"Fused: F1 score: {F1_scores}, accuracy: {acc}, balanced accuracy: {balanced_acc}")
+    else: 
+        logger.info("\n".join([f"Node {i}: F1 score: {F1_scores[i]}, accuracy: {acc[i]}, balanced accuracy: {balanced_acc[i]}" for i in range(len(F1_scores))])) """
                 
-        PT_args = load_PT_config(args.PT_config_path)
-        TEST_PC, model = train_cls.main([PT_args, samples_PC])
-        logger.info("Testing on dataset...")
-        F1_scores, acc, balanced_acc = point_transformer.test(PT_args, model, args.fusion, TEST_PC)
-        
-        if args.fusion != "none":
-            logger.info(f"Fused: F1 score: {F1_scores}, accuracy: {acc}, balanced accuracy: {balanced_acc}")
-        else: 
-            logger.info("\n".join([f"Node {i}: F1 score: {F1_scores[i]}, accuracy: {acc[i]}, balanced accuracy: {balanced_acc[i]}" for i in range(len(F1_scores))]))
-                
-    except Exception as error:
-        logger.exception(error)
 
 if __name__ == '__main__':
     main()

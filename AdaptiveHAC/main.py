@@ -124,11 +124,6 @@ def process(args, file_name):
     processing_eng.quit()
     gc.collect()
     return np.asarray(samples_PC)
-
-def log_memory_usage(logger):
-    """Logs the current memory usage."""
-    mem_usage = memory_usage(-1, interval=0.1, timeout=1)  # Get current memory usage
-    logger.info(f"Current memory usage: {mem_usage[0]} MiB")
     
 @hydra.main(config_path="conf", config_name="paramsweep", version_base='1.3')
 def main(args):
@@ -156,13 +151,13 @@ def main(args):
     PT_args = load_PT_config(args.PT_config_path)
     PC_path = f"{os.getcwd()}/PC/"
     TEST_PC, model = train_cls.main([PT_args, PC_names, PC_path])
-    """logger.info("Testing on dataset...")
-    F1_scores, acc, balanced_acc = point_transformer.test(PT_args, model, args.fusion, TEST_PC)
+    logger.info("Testing on dataset...")
+    F1_scores, acc, balanced_acc = point_transformer.test(PT_args, model, args.fusion, TEST_PC, PC_path)
     
     if args.fusion != "none":
         logger.info(f"Fused: F1 score: {F1_scores}, accuracy: {acc}, balanced accuracy: {balanced_acc}")
     else: 
-        logger.info("\n".join([f"Node {i}: F1 score: {F1_scores[i]}, accuracy: {acc[i]}, balanced accuracy: {balanced_acc[i]}" for i in range(len(F1_scores))])) """
+        logger.info("\n".join([f"Node {i}: F1 score: {F1_scores[i]}, accuracy: {acc[i]}, balanced accuracy: {balanced_acc[i]}" for i in range(len(F1_scores))]))
                 
 
 if __name__ == '__main__':

@@ -119,10 +119,6 @@ def process(args, file_name):
                 samples_PC = PC_processing.SNPC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, processing_eng)
             else:
                 samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, processing_eng)        
-    
-    segmentation_eng.quit()
-    processing_eng.quit()
-    gc.collect()
     return np.asarray(samples_PC)
     
 @hydra.main(config_path="conf", config_name="paramsweep", version_base='1.3')

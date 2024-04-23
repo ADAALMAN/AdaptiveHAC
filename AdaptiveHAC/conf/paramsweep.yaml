@@ -23,5 +23,6 @@ hydra:
     params:
       sample_method: windowing,segmentation
       node_method: all,0 # the numbers are the nodes (0-4)
-      subsegmentation: fixed-amount,fixed-length
       fusion: none, softmax
+      subsegmentation: fixed-amount,fixed-length
+      

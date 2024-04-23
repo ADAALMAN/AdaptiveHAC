@@ -6,6 +6,8 @@ from AdaptiveHAC.segmentation import segmentation
 from AdaptiveHAC.processing import PC_processing
 import scipy.io as sci
 from tqdm import tqdm
+from memory_profiler import memory_usage
+import time
 np.set_printoptions(threshold=sys.maxsize)
 
 # initialize matlab
@@ -119,6 +121,11 @@ def process(args, file_name):
                 samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, processing_eng)        
     
     return samples_PC
+
+def log_memory_usage(logger):
+    """Logs the current memory usage."""
+    mem_usage = memory_usage(-1, interval=0.1, timeout=1)  # Get current memory usage
+    logger.info(f"Current memory usage: {mem_usage[0]} MiB")
     
 @hydra.main(config_path="conf", config_name="paramsweep", version_base='1.3')
 def main(args):
@@ -133,7 +140,8 @@ def main(args):
             if file.endswith(".mat"):
                 samples_PC = process(args, file)
                 PC_dataset.extend(samples_PC)
-        
+                log_memory_usage(logger)
+
         import pickle
         with open('data.pkl', 'wb') as output:
             pickle.dump(PC_dataset, output)  

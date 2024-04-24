@@ -74,6 +74,7 @@ def main(args):
             TRAIN_PC, TEST_PC = train_test_split(PC, train_size=0.8, shuffle=True)
             TRAIN_DATASET = PCModelNetDataLoader(PC=TRAIN_PC, npoint=args.num_point)
             TEST_DATASET = PCModelNetDataLoader(PC=TEST_PC, npoint=args.num_point)
+            logger.info(f'Train_PC_len: {len(TRAIN_PC)} Test_PC_len: {len(TEST_PC)}')
         elif PC_type == "multiple_nodes":
             TRAIN_PC, TEST_PC = train_test_split(PC, train_size=0.8, shuffle=True)
             PC_TRAIN_all = []
@@ -84,6 +85,7 @@ def main(args):
                 PC_TEST_all.extend(j)               
             TRAIN_DATASET = PCModelNetDataLoader(PC=PC_TRAIN_all, npoint=args.num_point)
             TEST_DATASET = PCModelNetDataLoader(PC=PC_TEST_all, npoint=args.num_point)
+       	    logger.info(f'Train_PC_len: {len(PC_TRAIN_all)} Test_PC_len: {len(PC_TEST_all)}')
     else:
         dataset = args.dataset
         DATA_PATH = hydra.utils.to_absolute_path(dataset)

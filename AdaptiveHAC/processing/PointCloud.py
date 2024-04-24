@@ -2,7 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 class PointCloud:
-    def __init__(self, data, label):
+    __slots__ = ('data','label','mean_label','PRF','time', 'activities')
+    
+    def __init__(self, data:np.ndarray, label:np.ndarray):
         self.data = data
         self.label = label
         self.mean_label = stats.mode(label, axis=1)[0][0]
@@ -28,7 +30,7 @@ class PointCloud:
         self.data[:, 4] / 5                                                        # node
         return self    
       
-    def visualise(self):   
+    """ def visualise(self):   
         fig = plt.figure()
         ax = fig.add_subplot(projection='3d')
         ax.scatter(self.data[:,0], self.data[:,1], self.data[:,2])
@@ -36,4 +38,4 @@ class PointCloud:
         ax.set_ylabel('Frequency')
         ax.set_zlabel('Time')
         ax.set_title(self.activities[self.mean_label])
-        plt.show()
+        plt.show() """

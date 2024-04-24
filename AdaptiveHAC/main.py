@@ -6,8 +6,6 @@ from AdaptiveHAC.segmentation import segmentation
 from AdaptiveHAC.processing import PC_processing
 import scipy.io as sci
 from tqdm import tqdm
-from memory_profiler import memory_usage
-import time
 np.set_printoptions(threshold=sys.maxsize)
 
 # initialize matlab
@@ -140,11 +138,6 @@ def main(args):
             if file.endswith(".mat"):
                 samples_PC = process(args, file)
                 PC_dataset.extend(samples_PC)
-                log_memory_usage(logger)
-
-        import pickle
-        with open('data.pkl', 'wb') as output:
-            pickle.dump(PC_dataset, output)  
                 
         PT_args = load_PT_config(args.PT_config_path)
         TEST_PC, model = train_cls.main([PT_args, samples_PC])

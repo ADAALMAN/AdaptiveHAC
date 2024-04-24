@@ -61,7 +61,6 @@ def main(cfg):
     try:
         for file in tqdm(os.listdir(data_path), total=len(os.listdir(data_path)), smoothing=0.9):
             if file.endswith(".mat"):
-                log_memory_usage(logger)
                 result_queue = mp.Queue()
                 p = mp.Process(target=process_wrapper, args=(cfg, file, result_queue))
                 p.start()
@@ -69,7 +68,6 @@ def main(cfg):
                     pass
                 samples_PC = result_queue.get()
                 p.terminate()
-                log_memory_usage(logger)
                 PC_dataset.extend(samples_PC)
               
         PT_args = load_PT_config(cfg.PT_config_path)

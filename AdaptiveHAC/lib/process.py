@@ -7,16 +7,10 @@ from AdaptiveHAC.lib import timing_decorator, load_data
 from AdaptiveHAC.segmentation import segmentation
 from AdaptiveHAC.processing import PC_processing
 logger = logging.getLogger(__name__) 
-
-def log_memory_usage(logger):
-    """Logs the current memory usage."""
-    mem_usage = memory_usage(-1, interval=0.1, timeout=1)  # Get current memory usage
-    logger.info(f"Current memory usage: {mem_usage[0]} MiB")
     
 def process(args, file_name):
     omegaconf.OmegaConf.set_struct(args, False)
     data_path = hydra.utils.to_absolute_path(args.data_path)
-    log_memory_usage(logger)
     match args.node_method:
         case "all":
             data, lbl = load_data.load_data(data_path, file_name)
@@ -28,7 +22,7 @@ def process(args, file_name):
         case _ if isinstance(args.node_method, int):
             data, lbl = load_data.load_data(data_path, file_name)
             data = data[:,:, args.node_method]
-    log_memory_usage(logger)
+
     match args.sample_method:
         case "windowing":
             seg_th = "NA"
@@ -46,10 +40,9 @@ def process(args, file_name):
             samples, labels = segmentation.segmentation_thresholding(samples, labels, seg_th, "split")
             
     data_len = data.shape[1]  
-    log_memory_usage(logger)      
     del data, lbl
     gc.collect()
-    log_memory_usage(logger)
+
     features = {}
     for feature in args.features:
         match feature:
@@ -91,8 +84,6 @@ def process(args, file_name):
                 samples_PC = PC_processing.SNPC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, processing_eng)
             else:
                 samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, processing_eng)        
-    log_memory_usage(logger)
     del samples, labels
     gc.collect()
-    log_memory_usage(logger)
     return samples_PC

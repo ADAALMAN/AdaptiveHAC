@@ -95,4 +95,4 @@ def process(args, file_name):
     del samples, labels
     gc.collect()
     log_memory_usage(logger)
-    return #samples_PC
+    return samples_PC

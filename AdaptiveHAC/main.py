@@ -1,11 +1,12 @@
 import numpy as np
-import os, sys, hydra, omegaconf, yaml, argparse, logging
+import os, sys, hydra, omegaconf, yaml, argparse, logging, gc
 from AdaptiveHAC.pointTransformer import train_cls, point_transformer
 from AdaptiveHAC.lib import timing_decorator
 from AdaptiveHAC.segmentation import segmentation
 from AdaptiveHAC.processing import PC_processing
 import scipy.io as sci
 from tqdm import tqdm
+from memory_profiler import memory_usage
 np.set_printoptions(threshold=sys.maxsize)
 
 # initialize matlab
@@ -129,7 +130,6 @@ def log_memory_usage(logger):
 def main(args):
     omegaconf.OmegaConf.set_struct(args, False)
     data_path = hydra.utils.to_absolute_path(args.data_path)
-    
     logger = logging.getLogger(__name__)
     logger.info(args)
     PC_dataset = []
@@ -138,7 +138,7 @@ def main(args):
             if file.endswith(".mat"):
                 samples_PC = process(args, file)
                 PC_dataset.extend(samples_PC)
-                
+               
         PT_args = load_PT_config(args.PT_config_path)
         TEST_PC, model = train_cls.main([PT_args, samples_PC])
         logger.info("Testing on dataset...")

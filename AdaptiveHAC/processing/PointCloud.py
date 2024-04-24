@@ -2,7 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 class PointCloud:
-    def __init__(self, data, label):
+    __slots__ = ('data','label','mean_label','PRF','time', 'activities')
+    
+    def __init__(self, data:np.ndarray, label:np.ndarray):
         self.data = data
         self.label = label
         self.mean_label = stats.mode(label, axis=1)[0][0]

@@ -92,7 +92,7 @@ def PC_generation(samples, subsegmentation, param, npoints, thr, features, label
                 
             PC.normalise()
             #PC.visualise()
-            node_PC.append(PC)
+            node_PC.append(PC.data)
         samples_PC.append(node_PC)
     return samples_PC
 

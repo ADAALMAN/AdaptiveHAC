@@ -36,18 +36,9 @@ def log_memory_usage(logger):
     logger.info(f"Current memory usage: {mem_usage[0]} MiB")
 logger = logging.getLogger(__name__)    
 
-def process_wrapper(args, file_name, result_queue=None):
-    """ with hydra.initialize(config_path="conf", version_base='1.3'):
-        cfg = hydra.compose(config_name="paramsweep")
-        cfg.data_path = args.data_path
-        cfg.PT_config_path = args.PT_config_path
-        cfg.root = args.root """
-    # Call the process function
-    result = process.process(args, file_name)
-    
-    # If a queue is provided, use it to return the result
-    if result_queue is not None:
-        result_queue.put(result)
+def process_wrapper(args_file):
+    args, file = args_file
+    return process.process(args, file)
         
 @hydra.main(config_path="conf", config_name="paramsweep", version_base='1.3')
 def main(cfg):
@@ -59,19 +50,15 @@ def main(cfg):
     logger.info(cfg)
     PC_dataset = []
     try:
-        for file in tqdm(os.listdir(data_path), total=len(os.listdir(data_path)), smoothing=0.9):
-            if file.endswith(".mat"):
-                result_queue = mp.Queue()
-                p = mp.Process(target=process_wrapper, args=(cfg, file, result_queue))
-                p.start()
-                while result_queue.empty():
-                    pass
-                samples_PC = result_queue.get()
-                p.terminate()
-                PC_dataset.extend(samples_PC)
+        files = [file for file in os.listdir(data_path) if file.endswith(".mat")]
+        total_files = len(files)
+        files_with_args = [(cfg, file) for file in files]
+        for i in range(0, total_files-1, 2):
+            for result in tqdm(mp.Pool(processes=mp.cpu_count()).imap(process_wrapper, files_with_args[i]), total=total_files):
+                    PC_dataset.extend(result)
               
         PT_args = load_PT_config(cfg.PT_config_path)
-        TEST_PC, model = train_cls.main([PT_args, samples_PC])
+        TEST_PC, model = train_cls.main([PT_args, PC_dataset])
         logger.info("Testing on dataset...")
         F1_scores, acc, balanced_acc = point_transformer.test(PT_args, model, cfg.fusion, TEST_PC)
         

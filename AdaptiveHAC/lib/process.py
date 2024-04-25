@@ -14,6 +14,7 @@ def init_matlab(root):
     os.environ['HYDRA_FULL_ERROR'] = '1'
     eng = matlab.engine.start_matlab()
     eng.addpath(f'{root}/segmentation')
+    eng.addpath(f'{root}/processing')
     return eng
     
 def process(args, file_name):

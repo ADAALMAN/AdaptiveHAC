@@ -1,15 +1,7 @@
-import matlab.engine
 import numpy as np
 import matplotlib.pyplot as plt
 from AdaptiveHAC.lib import timing_decorator
 import os
-
-def init_matlab(root):
-    # initialize matlab
-    os.environ['HYDRA_FULL_ERROR'] = '1'
-    eng = matlab.engine.start_matlab()
-    eng.addpath(f'{root}/segmentation')
-    return eng
 
 def H_score(tr_avg, lbl, data_len, eng):
     tr_GT = eng.sig2timestamp(lbl, np.linspace(0, data_len-1, num=data_len), 'nonzero')

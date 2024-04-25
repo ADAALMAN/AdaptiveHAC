@@ -5,13 +5,6 @@ import os, sys
 from AdaptiveHAC.processing import PointCloud
 from AdaptiveHAC.lib import timing_decorator
 
-def init_matlab(root):
-    # initialize matlab
-    os.environ['HYDRA_FULL_ERROR'] = '1'
-    eng = matlab.engine.start_matlab()
-    eng.addpath(f'{root}/processing')
-    return eng
-
 def save_PC_txt(dir, PC, labels):
     activities = ['na','wlk','stat','sitdn','stupsit','bfrsit','bfrstand','ffw','stup','ffs']
     for act in activities:

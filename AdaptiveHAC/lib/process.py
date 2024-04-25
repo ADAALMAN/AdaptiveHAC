@@ -83,7 +83,9 @@ def process(args, file_name):
             if isinstance(args.node_method, int):
                 samples_PC = PC_processing.SNPC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, processing_eng)
             else:
-                samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, processing_eng)        
+                samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, processing_eng)
+    segmentation_eng.quit()
+    processing_eng.quit()        
     del samples, labels
     gc.collect()
     return samples_PC

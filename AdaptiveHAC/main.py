@@ -42,6 +42,7 @@ def process_wrapper(args_file):
         
 @hydra.main(config_path="conf", config_name="paramsweep", version_base='1.3')
 def main(cfg):
+    mp.set_start_method('spawn')
     omegaconf.OmegaConf.set_struct(cfg, False)
     data_path = hydra.utils.to_absolute_path(cfg.data_path)
     cfg.PT_config_path = hydra.utils.to_absolute_path(cfg.PT_config_path)

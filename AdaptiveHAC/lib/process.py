@@ -6,11 +6,20 @@ from memory_profiler import memory_usage
 from AdaptiveHAC.lib import timing_decorator, load_data
 from AdaptiveHAC.segmentation import segmentation
 from AdaptiveHAC.processing import PC_processing
+import matlab.engine
 logger = logging.getLogger(__name__) 
+
+def init_matlab(root):
+    # initialize matlab
+    os.environ['HYDRA_FULL_ERROR'] = '1'
+    eng = matlab.engine.start_matlab()
+    eng.addpath(f'{root}/segmentation')
+    return eng
     
 def process(args, file_name):
     omegaconf.OmegaConf.set_struct(args, False)
     data_path = hydra.utils.to_absolute_path(args.data_path)
+    eng = init_matlab(args.root)
     match args.node_method:
         case "all":
             data, lbl = load_data.load_data(data_path, file_name)
@@ -32,11 +41,10 @@ def process(args, file_name):
                 samples, labels = PC_processing.sample(data, lbl, sample_size = 'default')
         case "segmentation":
             seg_th = 100
-            segmentation_eng = segmentation.init_matlab(args.root)
             if isinstance(args.node_method, int):
-                samples, labels, H_avg_score, entropy, PBC = segmentation.SNsegmentation(data, lbl, segmentation_eng, args.root)
+                samples, labels, H_avg_score, entropy, PBC = segmentation.SNsegmentation(data, lbl, eng, args.root)
             else:
-                samples, labels, H_avg_score, entropy, PBC = segmentation.segmentation(data, lbl, segmentation_eng, args.root)
+                samples, labels, H_avg_score, entropy, PBC = segmentation.segmentation(data, lbl, eng, args.root)
             samples, labels = segmentation.segmentation_thresholding(samples, labels, seg_th, "split")
             
     data_len = data.shape[1]  
@@ -72,18 +80,16 @@ def process(args, file_name):
     match args.subsegmentation:
         case "fixed-amount":
             param = 6 # amount of subsegments
-            processing_eng = PC_processing.init_matlab(args.root)
             if isinstance(args.node_method, int):
-                samples_PC = PC_processing.SNPC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, processing_eng)
+                samples_PC = PC_processing.SNPC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, eng)
             else:
-                samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, processing_eng)
+                samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, eng)
         case "fixed-length":
             param = 20 # subsegment length
-            processing_eng = PC_processing.init_matlab(args.root)
             if isinstance(args.node_method, int):
-                samples_PC = PC_processing.SNPC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, processing_eng)
+                samples_PC = PC_processing.SNPC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, eng)
             else:
-                samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, processing_eng)        
+                samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, eng)        
     del samples, labels
     gc.collect()
     return samples_PC

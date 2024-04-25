@@ -55,8 +55,10 @@ def main(cfg):
         files = [file for file in os.listdir(data_path) if file.endswith(".mat")]
         total_files = len(files)
         files_with_args = [(cfg, file) for file in files]
-        for result in tqdm(mp.Pool(processes=mp.cpu_count()).imap(process_wrapper, files_with_args), total=total_files):
-                PC_dataset.extend(result)
+        batch_size = 8
+        for i in tqdm(range(0, total_files, batch_size), total=total_files//batch_size):
+            for result in mp.Pool(processes=mp.cpu_count()).imap(process_wrapper, files_with_args[i:i+batch_size]):
+                    PC_dataset.extend(result)
               
         PT_args = load_PT_config(cfg.PT_config_path)
         TEST_PC, model = train_cls.main([PT_args, PC_dataset])

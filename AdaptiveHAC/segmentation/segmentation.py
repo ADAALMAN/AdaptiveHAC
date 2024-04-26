@@ -13,7 +13,9 @@ def init_matlab(root):
 
 def H_score(tr_avg, lbl, data_len, eng):
     tr_GT = eng.sig2timestamp(lbl, np.linspace(0, data_len-1, num=data_len), 'nonzero')
-    if tr_GT.size[1] == 0:
+    if isinstance(tr_GT, float):
+        tr_GT = np.asarray([0.0])[:,np.newaxis]
+    elif (tr_GT.size[1] == 0):
         tr_GT = np.asarray([0.0])[:,np.newaxis]
 
     # compute score

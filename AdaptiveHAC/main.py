@@ -55,13 +55,14 @@ def main(cfg):
         total_files = len(files)
         files_with_args = [(cfg, file) for file in files]
         for i in tqdm(range(0, total_files-1, 2), total=total_files):
-            with mp.Pool(processes=mp.cpu_count()) as pool
+            with mp.Pool(processes=mp.cpu_count()) as pool:
                 for result in pool.imap(process_wrapper, [files_with_args[i]]):
                     PC_dataset.extend(result)
               
         PT_args = load_PT_config(cfg.PT_config_path)
         TEST_PC, model = train_cls.main([PT_args, PC_dataset])
         logger.info("Testing on dataset...")
+        logger.info(f'Testset size: {len(TEST_PC)}'
         F1_scores, acc, balanced_acc = point_transformer.test(PT_args, model, cfg.fusion, TEST_PC)
         
         if cfg.fusion != "none":

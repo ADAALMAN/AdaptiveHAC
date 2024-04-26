@@ -55,7 +55,8 @@ def main(cfg):
         total_files = len(files)
         files_with_args = [(cfg, file) for file in files]
         for i in tqdm(range(0, total_files-1, 2), total=total_files):
-            for result in mp.Pool(processes=mp.cpu_count()).imap(process_wrapper, [files_with_args[i]]):
+            with mp.Pool(processes=mp.cpu_count()) as pool
+                for result in pool.imap(process_wrapper, [files_with_args[i]]):
                     PC_dataset.extend(result)
               
         PT_args = load_PT_config(cfg.PT_config_path)

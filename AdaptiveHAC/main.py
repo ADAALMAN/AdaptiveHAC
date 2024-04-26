@@ -1,15 +1,13 @@
 import numpy as np
 import os, sys, hydra, omegaconf, yaml, argparse, logging, gc
 from AdaptiveHAC.pointTransformer import train_cls, point_transformer
-from AdaptiveHAC.lib import timing_decorator, load_data, process
+from AdaptiveHAC.lib import load_data, process
 from AdaptiveHAC.segmentation import segmentation
 from AdaptiveHAC.processing import PC_processing
 import scipy.io as sci
 from tqdm import tqdm
-from memory_profiler import memory_usage
 import multiprocessing as mp
 import matlab.engine
-np.set_printoptions(threshold=sys.maxsize)
 
 # initialize matlab
 os.environ['HYDRA_FULL_ERROR'] = '1'
@@ -31,10 +29,6 @@ def load_PT_config(PT_config_path):
     dict_args.experiment_folder = './'
     return dict_args
     
-def log_memory_usage(logger):
-    """Logs the current memory usage."""
-    mem_usage = memory_usage(-1, interval=0.1, timeout=1)  # Get current memory usage
-    logger.info(f"Current memory usage: {mem_usage[0]} MiB")
 logger = logging.getLogger(__name__)    
 
 def process_wrapper(args_file):
@@ -58,8 +52,9 @@ def main(cfg):
         batch_size = 8
         logger.info(f"Total files: {total_files}, processing batch size: {batch_size}")
         for i in tqdm(range(0, total_files, batch_size), total=total_files//batch_size):
-            for result in mp.Pool(processes=mp.cpu_count()).imap(process_wrapper, files_with_args[i:i+batch_size]):
-                    PC_dataset.extend(result)
+            with mp.Pool(processes=int(mp.cpu_count())) as pool:
+                for result in pool.imap(process_wrapper, files_with_args[i:i+batch_size]):
+                        PC_dataset.extend(result)
               
         PT_args = load_PT_config(cfg.PT_config_path)
         TEST_PC, model = train_cls.main([PT_args, PC_dataset])

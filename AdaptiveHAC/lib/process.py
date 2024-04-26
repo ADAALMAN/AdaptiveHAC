@@ -2,7 +2,6 @@ import numpy as np
 import os, sys, hydra, omegaconf, yaml, argparse, logging, gc
 import scipy.io as sci
 from tqdm import tqdm
-from memory_profiler import memory_usage
 from AdaptiveHAC.lib import timing_decorator, load_data
 from AdaptiveHAC.segmentation import segmentation
 from AdaptiveHAC.processing import PC_processing
@@ -21,6 +20,8 @@ def process(args, file_name):
     omegaconf.OmegaConf.set_struct(args, False)
     data_path = hydra.utils.to_absolute_path(args.data_path)
     eng = init_matlab(args.root)
+    #print(eng.version())
+    #print('\n',eng.license('checkout','Signal_Toolbox', nargout=2), eng.license('checkout','Image_Toolbox', nargout=2), eng.license('checkout','Statistics_Toolbox', nargout=2))
     match args.node_method:
         case "all":
             data, lbl = load_data.load_data(data_path, file_name)
@@ -90,7 +91,8 @@ def process(args, file_name):
             if isinstance(args.node_method, int):
                 samples_PC = PC_processing.SNPC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, eng)
             else:
-                samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, eng)        
+                samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, eng)  
+    eng.quit()      
     del samples, labels
     gc.collect()
     return samples_PC

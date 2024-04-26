@@ -3,7 +3,6 @@ import matlab.engine
 import numpy as np
 import os, sys
 from AdaptiveHAC.processing import PointCloud
-from AdaptiveHAC.lib import timing_decorator
 
 def save_PC_txt(dir, PC, labels):
     activities = ['na','wlk','stat','sitdn','stupsit','bfrsit','bfrstand','ffw','stup','ffs']

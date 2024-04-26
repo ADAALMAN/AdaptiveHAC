@@ -54,7 +54,7 @@ def main(cfg):
         files = [file for file in os.listdir(data_path) if file.endswith(".mat")]
         total_files = len(files)
         files_with_args = [(cfg, file) for file in files]
-        for i in tqdm(range(0, total_files-1, 2), total=total_files):
+        for i in tqdm(range(0, total_files-1, 1), total=total_files):
             with mp.Pool(processes=mp.cpu_count()) as pool:
                 for result in pool.imap(process_wrapper, [files_with_args[i]]):
                     PC_dataset.extend(result)

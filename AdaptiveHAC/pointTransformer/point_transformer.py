@@ -32,26 +32,39 @@ def test(args, model, fusion, TEST_PC):
     y_pred_all = []
     y_true_all = []
     # classify segments
-    for dataset in tqdm(TEST_PC, total=len(TEST_PC)):
-            
-        TEST_DATASET = PCModelNetDataLoader(PC=dataset, npoint=args.num_point)
-        testDataLoader = torch.utils.data.DataLoader(TEST_DATASET, batch_size=args.batch_size, shuffle=False, num_workers=4)
     
+    TEST_PC_ALL = []
+    # for bigger batches -> faster processing
+    if isinstance(TEST_PC[0], PointCloud):
+        TEST_PC_ALL = TEST_PC # single node
+    elif isinstance(TEST_PC[0][0], PointCloud):
+        for nodes in TEST_PC:
+            TEST_PC_ALL.extend(nodes)
+        
+    TEST_DATASET = PCModelNetDataLoader(PC=TEST_PC_ALL, npoint=args.num_point)
+    testDataLoader = torch.utils.data.DataLoader(TEST_DATASET, batch_size=args.batch_size, shuffle=False, num_workers=4)
+    
+    # classify nodes
+    for j, data in tqdm(enumerate(testDataLoader, 0), total=len(testDataLoader), smoothing=0.9):
+        points, target = data
+        target = target[:, 0]
+        points, target = points.to(device), target.to(device)
+
+        pred = classifier(points)
+    
+    for dataset in TEST_PC:
         if isinstance(dataset, PointCloud):
             activities = dataset.activities
             y_true = dataset.mean_label
         elif isinstance(dataset[0], PointCloud):
             activities = dataset[0].activities
             y_true = dataset[0].mean_label
-        
-        # classify nodes
-        for j, data in enumerate(testDataLoader):
-            points, target = data
-            target = target[:, 0]
-            points, target = points.to(device), target.to(device)
-
-            pred = classifier(points)
-                
+            nr_nodes = len(dataset)
+        y_true_all.append(y_true)
+    
+    # turn back into TEST_PC format for fusion
+    pred_all = [pred[i:i+nr_nodes] for i in range(int(len(pred)/nr_nodes))]     
+    for pred in pred_all:       
         match fusion:
             case "none":
                 pred_choice = pred.data.max(1)[1]
@@ -63,9 +76,7 @@ def test(args, model, fusion, TEST_PC):
                 pred_choice = pred_choice.data.max(0)[1]
                 pred_choice = np.asarray(pred_choice.cpu()).T
                 y_pred_all.append(pred_choice)
-        
-        y_true_all.append(y_true)
-        
+         
     y_pred_all = np.asarray(y_pred_all)
     if y_pred_all.ndim == 1:
         y_pred_all = y_pred_all[:,np.newaxis]

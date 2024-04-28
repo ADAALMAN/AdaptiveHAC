@@ -49,9 +49,9 @@ def main(cfg):
         files = [file for file in os.listdir(data_path) if file.endswith(".mat")]
         total_files = len(files)
         files_with_args = [(cfg, file) for file in files]
-        batch_size = 8
+        batch_size = 32
         logger.info(f"Total files: {total_files}, processing batch size: {batch_size}")
-        for i in tqdm(range(0, total_files, batch_size), total=total_files//batch_size):
+        for i in tqdm(range(0, total_files, batch_size), total=int(np.ceil(total_files/batch_size))):
             with mp.Pool(processes=int(mp.cpu_count())) as pool:
                 for result in pool.imap(process_wrapper, files_with_args[i:i+batch_size]):
                         PC_dataset.extend(result)

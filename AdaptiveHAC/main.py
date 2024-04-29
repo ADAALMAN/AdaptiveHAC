@@ -44,7 +44,10 @@ def main(cfg):
     PC_dataset = []
     try:
         # process all sequences to generate pointclouds
-        mp.set_start_method('spawn')
+        try:
+            mp.set_start_method('spawn', force=True)
+        except RuntimeError:
+            pass
         files = [file for file in os.listdir(data_path) if file.endswith(".mat")]
         total_files = len(files)
         files_with_args = [(cfg, file) for file in files]

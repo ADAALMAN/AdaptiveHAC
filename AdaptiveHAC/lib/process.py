@@ -73,7 +73,7 @@ def process(args, file_name):
                     j = j + samples[i].shape[1]
                 features["PBC"] = PBCs
             case "time":
-                features["time"] = "sequence-based"
+                features["time"] = ["sequence-based", data_len]
         
     npoints = 1024
     thr = 0.8

@@ -68,7 +68,6 @@ for iNode = 1:1:size(raw,3)
                 t_size = t_size + (size(dat_split{i}, 2)-1);
             end
             t = ones([size(y,1),1]).*t_size;
-            disp(t_size)
         else
             t = ones([size(y,1),1]).*ch;
         end

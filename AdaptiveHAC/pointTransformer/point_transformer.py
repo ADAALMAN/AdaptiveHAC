@@ -56,6 +56,7 @@ def test(args, model, fusion, TEST_PC):
         if isinstance(dataset, PointCloud):
             activities = dataset.activities
             y_true = dataset.mean_label
+            nr_nodes = 1
         elif isinstance(dataset[0], PointCloud):
             activities = dataset[0].activities
             y_true = dataset[0].mean_label

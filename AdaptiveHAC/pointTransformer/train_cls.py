@@ -5,18 +5,16 @@ modified by zhongyuan
 from AdaptiveHAC.pointTransformer.dataset import ModelNetDataLoader, PCModelNetDataLoader
 import numpy as np
 import os
-os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 import torch
 import logging
 from tqdm import tqdm
 from AdaptiveHAC.pointTransformer import provider
-from AdaptiveHAC.processing.PointCloud import PointCloud
 import importlib
 import shutil
 import hydra
 import omegaconf
 import matplotlib.pyplot as plt
-import argparse
+import pickle
 from sklearn.model_selection import train_test_split
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -92,6 +90,11 @@ def main(args):
         TRAIN_DATASET = ModelNetDataLoader(root=DATA_PATH, npoint=args.num_point, split='train')
         TEST_DATASET = ModelNetDataLoader(root=DATA_PATH, npoint=args.num_point, split='test')
         
+    with open('TRAIN_PC.pkl', 'wb') as file:
+            pickle.dump(TRAIN_PC, file)
+    with open('TEST_PC.pkl', 'wb') as file:
+            pickle.dump(TEST_PC, file)    
+            
     trainDataLoader = torch.utils.data.DataLoader(TRAIN_DATASET, batch_size=args.batch_size, shuffle=True, num_workers=4)
     testDataLoader = torch.utils.data.DataLoader(TEST_DATASET, batch_size=args.batch_size, shuffle=False, num_workers=4)
 
@@ -228,11 +231,11 @@ def main(args):
             f.write(' ')
         
         f.write('\n')
-        for acc in test_accuracy :
+        for acc in test_accuracy:
             f.write(str(acc))
             f.write(' ')
     logger.info('End of savetxt...')
-    
+    torch.cuda.empty_cache()
     return TEST_PC, classifier.eval()
     
 if __name__ == '__main__':

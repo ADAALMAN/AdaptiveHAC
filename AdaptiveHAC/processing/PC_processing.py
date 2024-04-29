@@ -1,7 +1,6 @@
-from types import NoneType
 import matlab.engine
 import numpy as np
-import os, sys
+import os
 from AdaptiveHAC.processing import PointCloud
 
 def save_PC_txt(dir, PC, labels):
@@ -84,8 +83,14 @@ def PC_generation(samples, subsegmentation, param, npoints, thr, features, label
                 
             PC.normalise()
             #PC.visualise()
-            node_PC.append(PC)
-        samples_PC.append(node_PC)
+            if PC.mean_label == 0: # filter out all N/A pointclouds
+                continue
+            else:
+                node_PC.append(PC)
+        if len(node_PC) == 0: # to prevent adding emty lists
+            continue
+        else:
+            samples_PC.append(node_PC)
     return samples_PC
 
 def SNPC_generation(samples, subsegmentation, param, npoints, thr, features, labels, eng):
@@ -108,7 +113,10 @@ def SNPC_generation(samples, subsegmentation, param, npoints, thr, features, lab
             PC.add_features(ft)
                 
         #PC.visualise()
-        samples_PC.append(PC)
+        if PC.mean_label == 0: # filter out all N/A pointclouds
+            continue
+        else:
+            samples_PC.append(PC)
     return samples_PC
 
 #eng.eval("dbstop in raw2PC at 10", nargout=0)

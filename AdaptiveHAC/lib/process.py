@@ -1,8 +1,6 @@
 import numpy as np
-import os, sys, hydra, omegaconf, yaml, argparse, logging, gc
-import scipy.io as sci
-from tqdm import tqdm
-from AdaptiveHAC.lib import timing_decorator, load_data
+import os, hydra, omegaconf, logging, gc
+from AdaptiveHAC.lib import load_data
 from AdaptiveHAC.segmentation import segmentation
 from AdaptiveHAC.processing import PC_processing
 import matlab.engine

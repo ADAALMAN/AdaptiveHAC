@@ -3,7 +3,6 @@ import os
 import importlib
 import numpy as np
 from tqdm import tqdm
-from AdaptiveHAC.pointTransformer import provider
 from AdaptiveHAC.processing.PointCloud import PointCloud
 from AdaptiveHAC.pointTransformer.dataset import ModelNetDataLoader, PCModelNetDataLoader
 import logging
@@ -24,7 +23,7 @@ def test(args, model, fusion, TEST_PC):
         if torch.cuda.device_count() > 1:
             classifier = torch.nn.DataParallel(classifier)
         classifier = classifier.to(device)
-        classifier.load_state_dict(model)
+        classifier.load_state_dict(model['model_state_dict'])
         classifier = classifier.eval()
     else:
         classifier = model.eval()
@@ -93,7 +92,7 @@ def test(args, model, fusion, TEST_PC):
         balanced_acc.append(metrics.accuracy_score(y_true=y_true_all, y_pred=y_pred_all[:,i][:,np.newaxis]))
         plt.close("all")
         metrics.ConfusionMatrixDisplay.from_predictions(y_true=y_true_all, y_pred=y_pred_all[:,i][:,np.newaxis], 
-                                                labels=np.arange(len(activities)), xticks_rotation=90, display_labels=activities, 
+                                                labels=np.arange(1, len(activities)-1), xticks_rotation=90, display_labels=activities[1:-1], 
                                                 cmap=plt.cm.Blues)
         plt.title("Fused" if fusion != "none" else f"Node: {i}")
         plt.savefig("conf_matrix_fused.jpg" if fusion != "none" else f"conf_matrix_node_{i}.jpg", bbox_inches='tight')

@@ -1,13 +1,11 @@
+from AdaptiveHAC.processing import PointCloud
 import numpy as np
-import os, sys, hydra, omegaconf, yaml, argparse, logging, gc
+import os, hydra, omegaconf, yaml, argparse, logging
 from AdaptiveHAC.pointTransformer import train_cls, point_transformer
-from AdaptiveHAC.lib import load_data, process
-from AdaptiveHAC.segmentation import segmentation
-from AdaptiveHAC.processing import PC_processing
-import scipy.io as sci
+from AdaptiveHAC.lib import process
 from tqdm import tqdm
 import multiprocessing as mp
-import matlab.engine
+import pickle
 
 # initialize matlab
 os.environ['HYDRA_FULL_ERROR'] = '1'
@@ -45,17 +43,22 @@ def main(cfg):
     logger.info(cfg)
     PC_dataset = []
     try:
+        # process all sequences to generate pointclouds
         mp.set_start_method('spawn')
         files = [file for file in os.listdir(data_path) if file.endswith(".mat")]
         total_files = len(files)
         files_with_args = [(cfg, file) for file in files]
-        batch_size = 32
+        batch_size = mp.cpu_count()-4
         logger.info(f"Total files: {total_files}, processing batch size: {batch_size}")
         for i in tqdm(range(0, total_files, batch_size), total=int(np.ceil(total_files/batch_size))):
-            with mp.Pool(processes=int(mp.cpu_count())) as pool:
+            with mp.Pool(processes=mp.cpu_count()) as pool:
                 for result in pool.imap(process_wrapper, files_with_args[i:i+batch_size]):
-                        PC_dataset.extend(result)
-              
+                    PC_dataset.extend(result)
+        
+        # save processed data
+        with open('Processed_data.pkl', 'wb') as file:
+            pickle.dump(PC_dataset, file)
+            
         PT_args = load_PT_config(cfg.PT_config_path)
         TEST_PC, model = train_cls.main([PT_args, PC_dataset])
         logger.info("Testing on dataset...")

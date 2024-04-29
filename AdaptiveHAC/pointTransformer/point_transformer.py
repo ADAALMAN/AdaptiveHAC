@@ -44,12 +44,13 @@ def test(args, model, fusion, TEST_PC):
     testDataLoader = torch.utils.data.DataLoader(TEST_DATASET, batch_size=args.batch_size, shuffle=False, num_workers=4)
     
     # classify nodes
+    pred = []
     for j, data in tqdm(enumerate(testDataLoader, 0), total=len(testDataLoader), smoothing=0.9):
         points, target = data
         target = target[:, 0]
         points, target = points.to(device), target.to(device)
 
-        pred = classifier(points)
+        pred.extend(classifier(points))
     
     for dataset in TEST_PC:
         if isinstance(dataset, PointCloud):
@@ -63,15 +64,15 @@ def test(args, model, fusion, TEST_PC):
     
     # turn back into TEST_PC format for fusion
     pred_all = [pred[i:i+nr_nodes] for i in range(int(len(pred)/nr_nodes))]     
-    for pred in pred_all:       
+    for prediction in pred_all:       
         match fusion:
             case "none":
-                pred_choice = pred.data.max(1)[1]
+                pred_choice = torch.stack(prediction,dim=0).data.max(1)[1]
                 pred_choice = np.asarray(pred_choice.cpu())[:, np.newaxis].T
                 pred_cls = stats.mode(pred_choice)
                 y_pred_all.extend(pred_choice)
             case "softmax":
-                pred_choice = pred.sum(dim=0)
+                pred_choice = torch.stack(prediction,dim=0).sum(dim=0)
                 pred_choice = pred_choice.data.max(0)[1]
                 pred_choice = np.asarray(pred_choice.cpu()).T
                 y_pred_all.append(pred_choice)
@@ -96,4 +97,5 @@ def test(args, model, fusion, TEST_PC):
                                                 cmap=plt.cm.Blues)
         plt.title("Fused" if fusion != "none" else f"Node: {i}")
         plt.savefig("conf_matrix_fused.jpg" if fusion != "none" else f"conf_matrix_node_{i}.jpg", bbox_inches='tight')
+    torch.cuda.empty_cache()
     return F1_scores, acc, balanced_acc

@@ -76,6 +76,8 @@ def main(cfg):
                 
     except Exception as error:
         logger.exception(error)
+    except KeyboardInterrupt:
+    	return
 
 if __name__ == '__main__':
     plt.close("all")

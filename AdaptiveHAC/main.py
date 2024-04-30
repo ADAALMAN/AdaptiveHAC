@@ -77,4 +77,12 @@ def main(cfg):
         logger.exception(error)
 
 if __name__ == '__main__':
-    main()
+    #main()
+    args = load_PT_config('./pointTransformer/config')
+    model = "./test/paramsweep/2024-04-29/15-37-23/0/best_model.pth"
+    fusion = 'none'
+    with open('./test/paramsweep/2024-04-29/15-37-23/0/TEST_PC.pkl', 'rb') as file:
+            TEST_PC = pickle.load(file)
+    args.input_dim = TEST_PC[0][0].data.shape[1]
+    F1_scores, acc, balanced_acc = point_transformer.test(args, model, fusion, TEST_PC)
+    print(F1_scores, acc, balanced_acc)

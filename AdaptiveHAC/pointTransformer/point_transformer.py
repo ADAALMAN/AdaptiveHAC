@@ -77,6 +77,7 @@ def test(args, model, fusion, TEST_PC):
                     pred_choice = pred_choice.data.max(0)[1]
                     pred_choice = np.asarray(pred_choice.cpu()).T
                     y_pred_all.append(pred_choice)
+                    y_true_all.append(y_true[0].cpu())
             
         y_pred_all = np.asarray(y_pred_all)
         if y_pred_all.ndim == 1:
@@ -91,7 +92,7 @@ def test(args, model, fusion, TEST_PC):
         for i in range(y_pred_all.shape[1]):
             F1_scores.append(metrics.f1_score(y_true=y_true_all, y_pred=y_pred_all[:,i][:,np.newaxis], average="macro"))
             acc.append(metrics.accuracy_score(y_true=y_true_all, y_pred=y_pred_all[:,i][:,np.newaxis], normalize=True))
-            balanced_acc.append(metrics.accuracy_score(y_true=y_true_all, y_pred=y_pred_all[:,i][:,np.newaxis]))
+            balanced_acc.append(metrics.balanced_accuracy_score(y_true=y_true_all, y_pred=y_pred_all[:,i][:,np.newaxis]))
             plt.close("all")
             metrics.ConfusionMatrixDisplay.from_predictions(y_true=y_true_all, y_pred=y_pred_all[:,i][:,np.newaxis], 
                                                     labels=np.arange(1, len(activities)-1), xticks_rotation=90, display_labels=activities[1:-1], 

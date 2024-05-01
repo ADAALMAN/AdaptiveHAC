@@ -109,8 +109,8 @@ def SNPC_generation(samples, subsegmentation, param, npoints, thr, features, lab
             ft = []
             for key in features.keys():
                 if key != "time":
-                    ft.append(features[key][i])
-            PC.add_features(ft)
+                    ft.append(features[key])
+            PC.add_features(ft, features["time"] if ("time" in features.keys()) else None)
                 
         #PC.visualise()
         if PC.mean_label == 0: # filter out all N/A pointclouds

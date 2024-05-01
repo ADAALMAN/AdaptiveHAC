@@ -85,7 +85,7 @@ def process(args, file_name):
             else:
                 samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, eng)
         case "fixed-length":
-            param = 20 # subsegment length
+            param = 40 # subsegment length
             if isinstance(args.node_method, int):
                 samples_PC = PC_processing.SNPC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, eng)
             else:

@@ -47,12 +47,20 @@ def test(args, model, fusion, TEST_PC):
         # classify nodes
         pred = []
         true = []
+        sequence_name_temp = []
+        H_score_temp = []
+        per_labels_temp = []
+        per_mean_label_temp = []
         for j, data in tqdm(enumerate(testDataLoader, 0), total=len(testDataLoader), smoothing=0.9):
             points, target, sequence_name, H_score, per_labels, per_mean_label = data
             target = target[:, 0]
             points, target = points.to(device), target.to(device)
             true.extend(target)
             pred.extend(classifier(points))
+            sequence_name_temp.extend(sequence_name)
+            H_score_temp.extend(H_score)
+            per_labels_temp.extend(per_labels)
+            per_mean_label_temp.extend(per_mean_label)
         
         for dataset in TEST_PC:
             if isinstance(dataset, PointCloud):
@@ -63,8 +71,13 @@ def test(args, model, fusion, TEST_PC):
                 nr_nodes = len(dataset)
         
         # turn back into TEST_PC format for fusion
-        pred_all = [pred[i*(nr_nodes):(i+1)*(nr_nodes)] for i in range(int(len(pred)/nr_nodes))]
-        true_all = [true[i*(nr_nodes):(i+1)*(nr_nodes)] for i in range(int(len(true)/nr_nodes))]  
+        pred_all            = [pred[i*(nr_nodes):(i+1)*(nr_nodes)] for i in range(int(len(pred)/nr_nodes))]
+        true_all            = [true[i*(nr_nodes):(i+1)*(nr_nodes)] for i in range(int(len(true)/nr_nodes))]
+        sequence_name_all   = [sequence_name_temp[i*(nr_nodes):(i+1)*(nr_nodes)] for i in range(int(len(true)/nr_nodes))]  
+        H_score_all         = [H_score_temp[i*(nr_nodes):(i+1)*(nr_nodes)] for i in range(int(len(true)/nr_nodes))]  
+        per_labels_all      = [per_labels_temp[i*(nr_nodes):(i+1)*(nr_nodes)] for i in range(int(len(true)/nr_nodes))]  
+        per_mean_label_all  = [per_mean_label_temp[i*(nr_nodes):(i+1)*(nr_nodes)] for i in range(int(len(true)/nr_nodes))]  
+    
         for y_pred, y_true in zip(pred_all, true_all):       
             match fusion:
                 case "none":
@@ -88,6 +101,10 @@ def test(args, model, fusion, TEST_PC):
         y_true_all = np.asarray(y_true_all)[:,np.newaxis]
         np.save(os.path.join(args.experiment_folder +'test_pred.npy'), y_pred_all)
         np.save(os.path.join(args.experiment_folder +'test_true.npy'), y_true_all)
+        np.save(os.path.join(args.experiment_folder +'sequence_names.npy'), np.asarray(sequence_name_all)[:,np.newaxis])
+        np.save(os.path.join(args.experiment_folder +'H_scores.npy'), np.asarray(H_score_all)[:,np.newaxis])
+        np.save(os.path.join(args.experiment_folder +'per_labels.npy'), np.asarray(per_labels_all))
+        np.save(os.path.join(args.experiment_folder +'per_mean_label.npy'), np.asarray(per_mean_label_all)[:,np.newaxis])
         
         F1_scores = []
         acc = []

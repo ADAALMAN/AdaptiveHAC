@@ -18,7 +18,7 @@ class PointCloud:
         
         self.segment_length = self.label.size
         self.mean_label = stats.mode(label, axis=1)[0][0]
-        self.per_labels = [np.sum(self.label == self.activities.index(act))/self.label.size for act in self.activities] # percentage of label occurance in segment
+        self.per_labels = np.asarray([np.sum(self.label == self.activities.index(act))/self.label.size for act in self.activities]) # percentage of label occurance in segment
         self.per_mean_label = self.per_labels[self.mean_label] # percentage of mean label occurance in segment
         
         

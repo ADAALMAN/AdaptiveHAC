@@ -82,10 +82,11 @@ def main(cfg):
 if __name__ == '__main__':
     plt.close("all")
     main()
-    """ args = load_PT_config('./pointTransformer/config')
-    model = "./test/paramsweep/2024-04-29/15-37-23/0/best_model.pth"
-    fusion = 'none'
-    with open('./test/paramsweep/2024-04-29/15-37-23/0/TEST_PC.pkl', 'rb') as file:
+    """ i=8
+    args = load_PT_config('./pointTransformer/config')
+    model = f"./test/paramsweep/2024-04-29/15-37-23/{i}/best_model.pth"
+    fusion = 'softmax'
+    with open(f'./test/paramsweep/2024-04-29/15-37-23/{i}/TEST_PC.pkl', 'rb') as file:
             TEST_PC = pickle.load(file)
     args.input_dim = TEST_PC[0][0].data.shape[1]
     F1_scores, acc, balanced_acc = point_transformer.test(args, model, fusion, TEST_PC)

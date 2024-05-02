@@ -35,6 +35,7 @@ def process(args, file_name):
     match args.sample_method:
         case "windowing":
             seg_th = "NA"
+            H_avg_score = "NA"
             if isinstance(args.node_method, int):
                 samples, labels = PC_processing.SNsample(data, lbl, sample_size = 'default')
             else:
@@ -90,6 +91,15 @@ def process(args, file_name):
                 samples_PC = PC_processing.SNPC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, eng)
             else:
                 samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, eng)  
+                
+    if isinstance(args.node_method, int):
+        for PC in samples_PC:
+            PC.add_attributes(file_name, H_avg_score)
+    else:
+        for PC in samples_PC:
+            for node in PC:
+                node.add_attributes(file_name, H_avg_score)
+    
     eng.quit()      
     del samples, labels
     gc.collect()

@@ -3,18 +3,25 @@ import matplotlib.pyplot as plt
 from scipy import stats
 
 class PointCloud:
-    __slots__ = ('data','label','mean_label','PRF','time', 'activities', 'total_time')
-    
     def __init__(self, data:np.ndarray, label:np.ndarray):
-        self.data = data
-        self.label = label
-        self.mean_label = stats.mode(label, axis=1)[0][0]
-        self.PRF = 122
-        self.time = "standard"
+        self.sequence_name = None
+        self.H_score = None
         self.total_time = 1
         self.activities = ["N/A", "Walking", "Stationary", "Sitting down","Standing up (sitting)",
                             "Bending (sitting)","Bending (standing)",
                             "Falling (walking)","Standing up (ground)","Falling (standing)"]
+        self.PRF = 122
+        self.time = "standard"
+        
+        self.data = data
+        self.label = label
+        
+        self.segment_length = self.label.size
+        self.mean_label = stats.mode(label, axis=1)[0][0]
+        self.per_labels = [np.sum(self.label == self.activities.index(act))/self.label.size for act in self.activities] # percentage of label occurance in segment
+        self.per_mean_label = self.per_labels[self.mean_label] # percentage of mean label occurance in segment
+        
+        
 
     def add_features(self, features, time_feature):
         for feature in features:
@@ -44,3 +51,7 @@ class PointCloud:
         ax.set_zlabel('Time')
         ax.set_title(self.activities[self.mean_label])
         plt.show()
+    
+    def add_attributes(self, name, H_score):
+        self.sequence_name = name
+        self.H_score = H_score

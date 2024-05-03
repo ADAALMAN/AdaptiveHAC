@@ -51,8 +51,9 @@ def test(args, model, fusion, TEST_PC):
         H_score_temp = []
         per_labels_temp = []
         per_mean_label_temp = []
+        seg_length_temp = []
         for j, data in tqdm(enumerate(testDataLoader, 0), total=len(testDataLoader), smoothing=0.9):
-            points, target, sequence_name, H_score, per_labels, per_mean_label = data
+            points, target, sequence_name, H_score, per_labels, per_mean_label, seg_length = data
             target = target[:, 0]
             points, target = points.to(device), target.to(device)
             true.extend(target)
@@ -61,6 +62,7 @@ def test(args, model, fusion, TEST_PC):
             H_score_temp.extend(H_score)
             per_labels_temp.extend(per_labels)
             per_mean_label_temp.extend(per_mean_label)
+            seg_length_temp.extend(seg_length)
         
         for dataset in TEST_PC:
             if isinstance(dataset, PointCloud):
@@ -77,7 +79,8 @@ def test(args, model, fusion, TEST_PC):
         H_score_all         = [H_score_temp[i*(nr_nodes):(i+1)*(nr_nodes)] for i in range(int(len(true)/nr_nodes))]  
         per_labels_all      = [per_labels_temp[i*(nr_nodes):(i+1)*(nr_nodes)] for i in range(int(len(true)/nr_nodes))]  
         per_mean_label_all  = [per_mean_label_temp[i*(nr_nodes):(i+1)*(nr_nodes)] for i in range(int(len(true)/nr_nodes))]  
-    
+        seg_length_all      = [seg_length_temp[i*(nr_nodes):(i+1)*(nr_nodes)] for i in range(int(len(true)/nr_nodes))]  
+        
         for y_pred, y_true in zip(pred_all, true_all):       
             match fusion:
                 case "none":
@@ -105,6 +108,7 @@ def test(args, model, fusion, TEST_PC):
         np.save(os.path.join(args.experiment_folder +'H_scores.npy'), np.asarray(H_score_all)[:,np.newaxis])
         np.save(os.path.join(args.experiment_folder +'per_labels.npy'), np.asarray(per_labels_all))
         np.save(os.path.join(args.experiment_folder +'per_mean_label.npy'), np.asarray(per_mean_label_all)[:,np.newaxis])
+        np.save(os.path.join(args.experiment_folder +'seg_length.npy'), np.asarray(seg_length_all)[:,np.newaxis])
         
         F1_scores = []
         acc = []

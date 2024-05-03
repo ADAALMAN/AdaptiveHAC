@@ -109,6 +109,17 @@ def SNsegmentation(data, lbl, eng, root): # single node segmentation
         labels.append(lbl[:,int(index[i]):int(index[i+1])])
     return segments, labels, H_avg_score, entropy_avg, PBC_avg
 
+def GTsegmentation(data, lbl):
+    index = np.where(lbl[:, :-1] != lbl[:, 1:])[1]
+    index = np.append(index, len(lbl[0])-1)
+    
+    segments = []
+    labels = []
+    for i in range(len(index)-1):
+        segments.append(data[:,int(index[i]):int(index[i+1]),:])
+        labels.append(lbl[:,int(index[i]):int(index[i+1])])
+    return segments, labels
+
 def segmentation_thresholding(segments, labels, threshold, method="shortest"):
     match method:
         case "split":

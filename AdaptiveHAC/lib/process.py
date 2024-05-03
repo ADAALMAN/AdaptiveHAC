@@ -47,6 +47,11 @@ def process(args, file_name):
             else:
                 samples, labels, H_avg_score, entropy, PBC = segmentation.segmentation(data, lbl, eng, args.root)
             samples, labels = segmentation.segmentation_thresholding(samples, labels, seg_th, "split")
+        case "GTsegmentation":
+            seg_th = 100
+            H_avg_score = "NA"
+            samples, labels, = segmentation.GTsegmentation(data, lbl)
+            samples, labels = segmentation.segmentation_thresholding(samples, labels, seg_th, "split")
             
     data_len = data.shape[1]  
     del data, lbl

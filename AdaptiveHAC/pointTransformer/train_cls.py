@@ -25,7 +25,7 @@ def validate(model, loader, num_class): #num_class should change !!!
     mean_correct = []
     class_acc = np.zeros((num_class,3))
     for j, data in tqdm(enumerate(loader), total=len(loader)):
-        points, target, _, _, _, _ = data
+        points, target, _, _, _, _, _ = data
         target = target[:, 0]
         points, target = points.to(device), target.to(device)
         classifier = model.eval()
@@ -148,7 +148,7 @@ def main(args):
         logger.info('Epoch %d (%d/%s):' % (global_epoch + 1, epoch + 1, args.epoch))
         classifier.train()
         for batch_id, data in tqdm(enumerate(trainDataLoader, 0), total=len(trainDataLoader), smoothing=0.9):
-            points, target, _, _, _, _ = data
+            points, target, _, _, _, _, _ = data
             points = points.data.numpy()
             points = provider.random_point_dropout(points)
             points[:,:, 0:3] = provider.random_scale_point_cloud(points[:,:, 0:3])

@@ -85,17 +85,18 @@ def test(args, model, fusion, TEST_PC):
             match fusion:
                 case "none":
                     pred_choice = torch.stack(y_pred,dim=0).data.max(1)[1]
-                    pred_choice = np.asarray(pred_choice.cpu())[:, np.newaxis].T    
+                    pred_choice = np.asarray(pred_choice.cpu())[:, np.newaxis].T  
+                    y_pred_all.extend(pred_choice)  
                 case "softmax":
                     pred_choice = torch.stack(y_pred,dim=0).sum(dim=0)
                     pred_choice = pred_choice.data.max(0)[1]
                     pred_choice = np.asarray(pred_choice.cpu()).T
+                    y_pred_all.append(pred_choice)
                 case "majvote":
                     pred_choice = torch.stack(y_pred,dim=0).mode(dim=0)
                     pred_choice = pred_choice.data.max(0)[1]
                     pred_choice = np.asarray(pred_choice.cpu()).T
-                    
-            y_pred_all.extend(pred_choice)
+                    y_pred_all.append(pred_choice)   
             y_true_all.append(y_true[0].cpu())
                     
         y_pred_all = np.asarray(y_pred_all)

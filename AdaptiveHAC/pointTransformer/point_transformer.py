@@ -10,7 +10,7 @@ import logging
 from scipy import stats
 from sklearn import metrics
 import matplotlib.pyplot as plt
-
+import pandas as pd
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 path=os.getcwd()
 logger = logging.getLogger(__name__)
@@ -105,13 +105,6 @@ def test(args, model, fusion, TEST_PC):
             if y_pred_all.ndim == 1:
                 y_pred_all = y_pred_all[:,np.newaxis]
             y_true_all = np.asarray(y_true_all)[:,np.newaxis]
-            np.save(os.path.join(args.experiment_folder + "/" + fusion + '/test_pred.npy'), y_pred_all)
-            np.save(os.path.join(args.experiment_folder + "/" + fusion + '/test_true.npy'), y_true_all)
-            np.save(os.path.join(args.experiment_folder + "/" + fusion + '/sequence_names.npy'), np.asarray(sequence_name_all)[:,np.newaxis])
-            np.save(os.path.join(args.experiment_folder + "/" + fusion + '/H_scores.npy'), np.asarray(H_score_all)[:,np.newaxis])
-            np.save(os.path.join(args.experiment_folder + "/" + fusion + '/per_labels.npy'), np.asarray(per_labels_all))
-            np.save(os.path.join(args.experiment_folder + "/" + fusion + '/per_mean_label.npy'), np.asarray(per_mean_label_all)[:,np.newaxis])
-            np.save(os.path.join(args.experiment_folder + "/" + fusion + '/seg_length.npy'), np.asarray(seg_length_all)[:,np.newaxis])
             
             F1_scores = []
             acc = []
@@ -127,6 +120,22 @@ def test(args, model, fusion, TEST_PC):
                 plt.title("Fused" if fusion != "none" else f"Node: {i}")
                 plt.savefig(os.path.join(args.experiment_folder + "/" + fusion + "/conf_matrix_fused.jpg") if fusion != "none" 
                             else os.path.join(args.experiment_folder + "/" + fusion + f"/conf_matrix_node_{i}.jpg"), bbox_inches='tight')
+                
+            # save data    
+            np.save(os.path.join(args.experiment_folder + "/" + fusion + '/test_pred.npy'), y_pred_all)
+            np.save(os.path.join(args.experiment_folder + "/" + fusion + '/test_true.npy'), y_true_all)
+            np.save(os.path.join(args.experiment_folder + "/" + fusion + '/sequence_names.npy'), np.asarray(sequence_name_all)[:,np.newaxis])
+            np.save(os.path.join(args.experiment_folder + "/" + fusion + '/H_scores.npy'), np.asarray(H_score_all)[:,np.newaxis])
+            np.save(os.path.join(args.experiment_folder + "/" + fusion + '/per_labels.npy'), np.asarray(per_labels_all))
+            np.save(os.path.join(args.experiment_folder + "/" + fusion + '/per_mean_label.npy'), np.asarray(per_mean_label_all)[:,np.newaxis])
+            np.save(os.path.join(args.experiment_folder + "/" + fusion + '/seg_length.npy'), np.asarray(seg_length_all)[:,np.newaxis])
+            pd.DataFrame(y_pred_all).to_csv(os.path.join(args.experiment_folder + "/" + fusion + '/test_pred.csv'), index=False)
+            pd.DataFrame(y_true_all).to_csv(os.path.join(args.experiment_folder + "/" + fusion + '/test_true.csv'), index=False)
+            pd.DataFrame(np.asarray(sequence_name_all)[:,np.newaxis][:,0]).to_csv(os.path.join(args.experiment_folder + "/" + fusion + '/sequence_names.csv'), index=False)
+            pd.DataFrame(np.asarray(H_score_all)[:,np.newaxis][:,0]).to_csv(os.path.join(args.experiment_folder + "/" + fusion + '/H_scores.csv'), index=False)
+            pd.DataFrame(np.asarray(per_labels_all)[:,:,0]).to_csv(os.path.join(args.experiment_folder + "/" + fusion + '/per_labels.csv'), index=False)
+            pd.DataFrame(np.asarray(per_mean_label_all)[:,np.newaxis][:,0]).to_csv(os.path.join(args.experiment_folder + "/" + fusion + '/per_mean_label.csv'), index=False)
+            pd.DataFrame(np.asarray(seg_length_all)[:,np.newaxis][:,0]).to_csv(os.path.join(args.experiment_folder + "/" + fusion + '/seg_length.csv'), index=False)
             np.savetxt(os.path.join(args.experiment_folder + "/" + fusion + '/F1.txt'), np.asarray(F1_scores), fmt='%1.5f', delimiter=',', newline='\n')
             np.savetxt(os.path.join(args.experiment_folder + "/" + fusion + '/Accuracy.txt'), np.asarray(acc), fmt='%1.5f', delimiter=',', newline='\n')
             np.savetxt(os.path.join(args.experiment_folder + "/" + fusion + '/Balanced_accuracy.txt'), np.asarray(balanced_acc), fmt='%1.5f', delimiter=',', newline='\n')

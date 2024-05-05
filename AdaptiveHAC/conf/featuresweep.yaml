@@ -4,11 +4,11 @@ sample_method: segmentation
 node_method: all
 subsegmentation: fixed-amount
 features: [none]
-
+fusion: softmax
 root: ${hydra:runtime.cwd}
 data_path: ${hydra:runtime.cwd}/test/data/
 PT_config_path: ${hydra:runtime.cwd}/pointTransformer/config/
-experiment_folder: 'test/paramsweep/'
+experiment_folder: 'test/featuresweep/'
 
 hydra:
   job:

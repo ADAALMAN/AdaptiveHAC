@@ -32,15 +32,19 @@ class PointCloud:
             self.total_time = time_feature[1]
             
     def normalise(self):
-        (self.data[:, 0] - np.mean(self.data[:, 0])) / 480                         # range
-        self.data[:, 1] / self.PRF                                                 # doppler
+        temp_data = np.copy(self.data)
+        temp_data[:, 0] = (temp_data[:, 0] - np.mean(temp_data[:, 0])) / 480                         # range
+        temp_data[:, 1] = temp_data[:, 1] / self.PRF                                                 # doppler
         if self.time == "standard":
-            (self.data[:, 2] - np.mean(self.data[:, 2])) / np.std(self.data[:, 2])     # time
+            temp_data[:, 2] = (temp_data[:, 2] - np.mean(temp_data[:, 2])) / np.std(temp_data[:, 2]) # time
         elif self.time == "sequence-based":
-            self.data[:, 2]/self.total_time
-        (self.data[:, 3] - np.mean(self.data[:, 3])) / np.std(self.data[:, 3])     # power
-        self.data[:, 4] / 5                                                        # node
-        return self    
+            temp_data[:, 2] = temp_data[:, 2]/self.total_time
+        temp_data[:, 3] = (temp_data[:, 3] - np.mean(temp_data[:, 3])) / np.std(temp_data[:, 3])     # power
+        temp_data[:, 4] = temp_data[:, 4] / 5                                                        # node
+        if temp_data.shape[1] > 5:
+            for i in range(5, temp_data.shape[1]):
+                temp_data[:, i] = temp_data[:, i] / 1e6
+        self.data = temp_data 
       
     def visualise(self):   
         fig = plt.figure()

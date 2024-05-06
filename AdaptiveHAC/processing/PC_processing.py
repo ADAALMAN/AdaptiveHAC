@@ -74,7 +74,7 @@ def PC_generation(samples, subsegmentation, param, npoints, thr, features, label
                                                             (features["time"][0] if ("time" in features.keys()) else "standard"))), # cant use i
                                        label) # point cloud generation
             
-            if not features == False:
+            if not not features:
                 ft = []
                 for key in features.keys():
                     if key != "time":

@@ -20,7 +20,14 @@ from sklearn.model_selection import train_test_split
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 path=os.getcwd()
 # dataset = 'MMA_xyzI'
-
+def sanitiser(dataset):
+    for PC in dataset:
+            PC.data[np.isinf(PC.data)] = 0
+            PC.data[np.isneginf(PC.data)] = 1
+            PC.data[np.isin(np.asarray(PC.data), np.nan)] = 0
+    
+    return dataset
+            
 def validate(model, loader, num_class): #num_class should change !!!
     mean_correct = []
     class_acc = np.zeros((num_class,3))
@@ -95,7 +102,7 @@ def main(args):
             for i in PC:
                 for node in i:
                     mean_labels.append(node.mean_label) 
-            for j in range(1, 9, 1): #loop through classes 
+            for j in range(1, 10, 1): #loop through classes 
                 mean_label_class.append(mean_labels.count(j) if mean_labels.count(j) != 0 else 1)
        	    logger.info(f'Train_PC_len: {len(PC_TRAIN_all)} Test_PC_len: {len(PC_TEST_all)}')
     else:
@@ -103,6 +110,9 @@ def main(args):
         DATA_PATH = hydra.utils.to_absolute_path(dataset)
         TRAIN_DATASET = ModelNetDataLoader(root=DATA_PATH, npoint=args.num_point, split='train')
         TEST_DATASET = ModelNetDataLoader(root=DATA_PATH, npoint=args.num_point, split='test')
+    
+    PC_TRAIN_all = sanitiser(PC_TRAIN_all)
+    PC_TEST_all = sanitiser(PC_TEST_all)
         
     with open('TRAIN_PC.pkl', 'wb') as file:
             pickle.dump(TRAIN_PC, file)
@@ -119,7 +129,6 @@ def main(args):
     if torch.cuda.device_count() > 1:
         classifier = torch.nn.DataParallel(classifier)
     classifier = classifier.to(device)
-    
      
     criterion = torch.nn.CrossEntropyLoss(torch.FloatTensor([0,
                                                              1/mean_label_class[0],
@@ -131,7 +140,8 @@ def main(args):
                                                              1/mean_label_class[6],
                                                              1/mean_label_class[7],
                                                              1/mean_label_class[8]]).to(device))
-
+    #criterion = torch.nn.CrossEntropyLoss(torch.FloatTensor([0,1,1,1,1,1,1,1,1,1]).to(device))
+    
     try:
         checkpoint = torch.load('best_model.pth')
         start_epoch = checkpoint['epoch']

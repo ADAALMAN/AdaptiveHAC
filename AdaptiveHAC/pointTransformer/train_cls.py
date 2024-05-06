@@ -72,6 +72,13 @@ def main(args):
             TRAIN_PC, TEST_PC = train_test_split(PC, train_size=0.8, shuffle=True)
             TRAIN_DATASET = PCModelNetDataLoader(PC=TRAIN_PC, npoint=args.num_point)
             TEST_DATASET = PCModelNetDataLoader(PC=TEST_PC, npoint=args.num_point)
+            mean_label_class  = []
+            mean_labels = []
+            for i in PC:
+                mean_labels.append(i.mean_label) 
+            for j in range(1, 9, 1): #loop through classes 
+                mean_label_class.append(mean_labels.count(j))
+                
             logger.info(f'Train_PC_len: {len(TRAIN_PC)} Test_PC_len: {len(TEST_PC)}')
         elif PC_type == "multiple_nodes":
             TRAIN_PC, TEST_PC = train_test_split(PC, train_size=0.8, shuffle=True)
@@ -83,6 +90,13 @@ def main(args):
                 PC_TEST_all.extend(j)               
             TRAIN_DATASET = PCModelNetDataLoader(PC=PC_TRAIN_all, npoint=args.num_point)
             TEST_DATASET = PCModelNetDataLoader(PC=PC_TEST_all, npoint=args.num_point)
+            mean_label_class  = []
+            mean_labels = []
+            for i in PC:
+                for node in i:
+                    mean_labels.append(node.mean_label) 
+            for j in range(1, 9, 1): #loop through classes 
+                mean_label_class.append(mean_labels.count(j) if mean_labels.count(j) != 0 else 1)
        	    logger.info(f'Train_PC_len: {len(PC_TRAIN_all)} Test_PC_len: {len(PC_TEST_all)}')
     else:
         dataset = args.dataset
@@ -105,8 +119,18 @@ def main(args):
     if torch.cuda.device_count() > 1:
         classifier = torch.nn.DataParallel(classifier)
     classifier = classifier.to(device)
-    # print(classifier)
-    criterion = torch.nn.CrossEntropyLoss(torch.FloatTensor([0,1,1,1,1,1,1,1,1,1]).to(device))
+    
+     
+    criterion = torch.nn.CrossEntropyLoss(torch.FloatTensor([0,
+                                                             1/mean_label_class[0],
+                                                             1/mean_label_class[1],
+                                                             1/mean_label_class[2],
+                                                             1/mean_label_class[3],
+                                                             1/mean_label_class[4],
+                                                             1/mean_label_class[5],
+                                                             1/mean_label_class[6],
+                                                             1/mean_label_class[7],
+                                                             1/mean_label_class[8]]).to(device))
 
     try:
         checkpoint = torch.load('best_model.pth')

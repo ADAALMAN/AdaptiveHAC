@@ -130,7 +130,7 @@ def main(args):
         classifier = torch.nn.DataParallel(classifier)
     classifier = classifier.to(device)
      
-    criterion = torch.nn.CrossEntropyLoss(torch.FloatTensor([0,
+    """ criterion = torch.nn.CrossEntropyLoss(torch.FloatTensor([0,
                                                              1/mean_label_class[0],
                                                              1/mean_label_class[1],
                                                              1/mean_label_class[2],
@@ -139,8 +139,8 @@ def main(args):
                                                              1/mean_label_class[5],
                                                              1/mean_label_class[6],
                                                              1/mean_label_class[7],
-                                                             1/mean_label_class[8]]).to(device))
-    #criterion = torch.nn.CrossEntropyLoss(torch.FloatTensor([0,1,1,1,1,1,1,1,1,1]).to(device))
+                                                             1/mean_label_class[8]]).to(device)) """
+    criterion = torch.nn.CrossEntropyLoss(torch.FloatTensor([0,1,1,1,1,1,1,1,1,1]).to(device))
     
     try:
         checkpoint = torch.load('best_model.pth')

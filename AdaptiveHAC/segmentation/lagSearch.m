@@ -13,9 +13,9 @@ function [y,signal,threshold] = lagSearch(x,lag,threshold)
 arguments
     x (:,1)
     lag (1,1) {mustBeInteger} = 47
-    threshold (1,1) = std(x,'omitnan')
+    threshold (1,1) = 1
 end
 y = padarray(x(1:end-lag)-x(lag+1:end),[lag,0],0,'pre');
-signal = zeros(length(x),1); signal(abs(y)>threshold) = 1;
+signal = zeros(length(x),1); signal(abs(y)>threshold*std(x,'omitnan')) = 1;
 end
 

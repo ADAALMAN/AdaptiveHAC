@@ -12,6 +12,7 @@ class PointCloud:
                             "Falling (walking)","Standing up (ground)","Falling (standing)"]
         self.PRF = 122
         self.time = "standard"
+        self.features = "none"
         
         self.data = data
         self.label = label
@@ -41,9 +42,13 @@ class PointCloud:
             temp_data[:, 2] = temp_data[:, 2]/self.total_time
         temp_data[:, 3] = (temp_data[:, 3] - np.mean(temp_data[:, 3])) / np.std(temp_data[:, 3])     # power
         temp_data[:, 4] = temp_data[:, 4] / 5                                                        # node
-        if temp_data.shape[1] > 5:
-            for i in range(5, temp_data.shape[1]):
-                temp_data[:, i] = temp_data[:, i] / (i-4)**20
+        if "entropy" in self.features and "PBC" in self.features:
+            temp_data[:, 5] = temp_data[:, 5]/10
+            temp_data[:, 6] = temp_data[:, 6]/1e6
+        elif "entropy" in self.features and "PBC" not in self.features:
+            temp_data[:, 5] = temp_data[:, 5]/10
+        elif "entropy" not in self.features and "PBC" in self.features:
+            temp_data[:, 5] = temp_data[:, 5]/1e6
         self.data = temp_data 
       
     def visualise(self):   

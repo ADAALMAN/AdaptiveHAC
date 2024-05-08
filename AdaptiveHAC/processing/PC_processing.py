@@ -79,6 +79,7 @@ def PC_generation(samples, subsegmentation, param, npoints, thr, features, label
                 for key in features.keys():
                     if key != "time":
                         ft.append(features[key][i])
+                PC.features = features.keys()
                 PC.add_features(ft, features["time"] if ("time" in features.keys()) else None)
                 
             PC.normalise()

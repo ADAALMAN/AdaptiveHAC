@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matlab
 
 def H_score(tr_avg, lbl, data_len, eng):
     tr_GT = eng.sig2timestamp(lbl, np.linspace(0, data_len-1, num=data_len), 'nonzero')
@@ -40,7 +41,7 @@ def segmentation(data, lbl, eng, root): # multinode segmentation
     # 5-node averaged H
     entropy_avg = np.mean(entropy, axis=1)
     PBC_avg = np.mean(PBC, axis=1)
-    _, s_avg, _ = eng.lagSearch(entropy_avg, 47, 0.5, nargout=3)
+    _, s_avg, _ = eng.lagSearch(entropy_avg, matlab.double(47), matlab.double(0.5), nargout=3)
     
     plt.figure(2)
     plt.plot(np.linspace(0, t.size[1], num=t.size[1]), s_avg*np.max(entropy[:,0]))

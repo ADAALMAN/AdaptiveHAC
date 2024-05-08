@@ -43,7 +43,7 @@ class PointCloud:
         temp_data[:, 4] = temp_data[:, 4] / 5                                                        # node
         if temp_data.shape[1] > 5:
             for i in range(5, temp_data.shape[1]):
-                temp_data[:, i] = temp_data[:, i] / 1e6
+                temp_data[:, i] = temp_data[:, i] / (i-4)**20
         self.data = temp_data 
       
     def visualise(self):   

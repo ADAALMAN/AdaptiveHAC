@@ -43,9 +43,9 @@ def process(args, file_name):
         case "segmentation":
             seg_th = 100
             if isinstance(args.node_method, int):
-                samples, labels, H_avg_score, entropy, PBC = segmentation.SNsegmentation(data, lbl, eng, args.root)
+                samples, labels, H_avg_score, entropy, PBC = segmentation.SNsegmentation(data, lbl, eng, args)
             else:
-                samples, labels, H_avg_score, entropy, PBC = segmentation.segmentation(data, lbl, eng, args.root)
+                samples, labels, H_avg_score, entropy, PBC = segmentation.segmentation(data, lbl, eng, args)
             samples, labels = segmentation.segmentation_thresholding(samples, labels, seg_th, "split")
         case "GTsegmentation":
             seg_th = 100
@@ -85,13 +85,21 @@ def process(args, file_name):
     thr = 0.8
     match args.subsegmentation:
         case "fixed-amount":
-            param = 6 # amount of subsegments
+            if isinstance(args.subsegparam, int):
+                param = args.subsegparam # amount of subsegments
+            else:
+                param = 6
+                
             if isinstance(args.node_method, int):
                 samples_PC = PC_processing.SNPC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, eng)
             else:
                 samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, eng)
         case "fixed-length":
-            param = 40 # subsegment length
+            if isinstance(args.subsegparam, int):
+                param = args.subsegparam # subsegments length
+            else:
+                param = 40
+                
             if isinstance(args.node_method, int):
                 samples_PC = PC_processing.SNPC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, eng)
             else:

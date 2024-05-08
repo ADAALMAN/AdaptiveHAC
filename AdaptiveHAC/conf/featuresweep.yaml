@@ -5,6 +5,9 @@ node_method: all
 subsegmentation: fixed-amount
 features: [entropy, PBC, time]
 fusion: softmax
+subsegparam: default
+lag_search_th: 0.5
+
 root: ${hydra:runtime.cwd}
 data_path: ${hydra:runtime.cwd}/test/data/
 PT_config_path: ${hydra:runtime.cwd}/pointTransformer/config/

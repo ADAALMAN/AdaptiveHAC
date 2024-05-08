@@ -17,10 +17,10 @@ def H_score(tr_avg, lbl, data_len, eng):
     H_score_trans, _ = eng.perfFuncLinSeg(tr_avg, tr_GT,  data_len/180,nargout=2)
     return H_score
 
-def segmentation(data, lbl, eng, root): # multinode segmentation
+def segmentation(data, lbl, eng, args): # multinode segmentation
     
     # create spectrogram
-    spectrogram, t, f = eng.process(data, f'{root}/segmentation/config_monostatic_TUD.mat', nargout=3)
+    spectrogram, t, f = eng.process(data, f'{args.root}/segmentation/config_monostatic_TUD.mat', nargout=3)
     plt.figure(0)
     plt.imshow(np.asarray(spectrogram)[:,:,0],cmap='viridis')
     plt.colorbar(label='Magnitude (dB)')
@@ -30,7 +30,7 @@ def segmentation(data, lbl, eng, root): # multinode segmentation
     
 
     entropy = np.asarray(eng.renyi(spectrogram, nargout=1))
-    PBC = np.asarray(eng.pbc(spectrogram, f'{root}/segmentation/config_monostatic_TUD.mat', nargout=1))
+    PBC = np.asarray(eng.pbc(spectrogram, f'{args.root}/segmentation/config_monostatic_TUD.mat', nargout=1))
     plt.figure(1)
     plt.plot(np.linspace(0, t.size[1], num=t.size[1]), entropy[:,0][:,np.newaxis])
     plt.title('Entropy')
@@ -41,7 +41,7 @@ def segmentation(data, lbl, eng, root): # multinode segmentation
     # 5-node averaged H
     entropy_avg = np.mean(entropy, axis=1)
     PBC_avg = np.mean(PBC, axis=1)
-    _, s_avg, _ = eng.lagSearch(entropy_avg, matlab.double(47), matlab.double(0.5), nargout=3)
+    _, s_avg, _ = eng.lagSearch(entropy_avg, matlab.double(47), matlab.double(args.lag_search_th), nargout=3)
     
     plt.figure(2)
     plt.plot(np.linspace(0, t.size[1], num=t.size[1]), s_avg*np.max(entropy[:,0]))
@@ -64,10 +64,10 @@ def segmentation(data, lbl, eng, root): # multinode segmentation
         labels.append(lbl[:,int(index[i]):int(index[i+1])])
     return segments, labels, H_avg_score, entropy_avg, PBC_avg
 
-def SNsegmentation(data, lbl, eng, root): # single node segmentation
+def SNsegmentation(data, lbl, eng, args): # single node segmentation
     
     # create spectrogram
-    spectrogram, t, f = eng.process(data, f'{root}/segmentation/config_monostatic_TUD.mat', nargout=3)
+    spectrogram, t, f = eng.process(data, f'{args.root}/segmentation/config_monostatic_TUD.mat', nargout=3)
     plt.figure(0)
     plt.imshow(np.asarray(spectrogram)[:,:],cmap='viridis')
     plt.colorbar(label='Magnitude (dB)')
@@ -76,7 +76,7 @@ def SNsegmentation(data, lbl, eng, root): # single node segmentation
     data_len = data.shape[1]
 
     entropy = np.asarray(eng.renyi(spectrogram, nargout=1))
-    PBC = np.asarray(eng.pbc(spectrogram, f'{root}/segmentation/config_monostatic_TUD.mat', nargout=1))
+    PBC = np.asarray(eng.pbc(spectrogram, f'{args.root}/segmentation/config_monostatic_TUD.mat', nargout=1))
     plt.figure(1)
     plt.plot(np.linspace(0, t.size[1], num=t.size[1]), entropy[:,0][:,np.newaxis])
     plt.title('Entropy')
@@ -87,7 +87,7 @@ def SNsegmentation(data, lbl, eng, root): # single node segmentation
     # 5-node averaged H
     entropy_avg = np.mean(entropy, axis=1)
     PBC_avg = np.mean(PBC, axis=1)
-    _, s_avg, _ = eng.lagSearch(entropy_avg, nargout=3)
+    _, s_avg, _ = eng.lagSearch(entropy_avg, matlab.double(47), matlab.double(args.lag_search_th), nargout=3)
     
     plt.figure(2)
     plt.plot(np.linspace(0, t.size[1], num=t.size[1]), s_avg*np.max(entropy[:,0]))

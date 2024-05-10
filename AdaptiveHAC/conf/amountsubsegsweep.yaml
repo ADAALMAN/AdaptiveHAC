@@ -1,0 +1,27 @@
+defaults:
+  - _self_
+sample_method: segmentation
+node_method: all
+subsegmentation: fixed-amount
+features: [none]
+fusion: softmax
+subsegparam: default
+lag_search_th: 0.5
+
+root: ${hydra:runtime.cwd}
+data_path: ${hydra:runtime.cwd}/test/data/
+PT_config_path: ${hydra:runtime.cwd}/pointTransformer/config/
+experiment_folder: 'test/lagsearchsweep/'
+
+hydra:
+  job:
+    chdir: True
+  run:
+    dir: test/runs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: ${experiment_folder}${now:%Y-%m-%d}/${now:%H-%M-%S}
+    subdir: ${hydra.job.num}
+  sweeper:
+    params:
+      subsegparam: 1,2,3,4,5,6,7,8,9,10,11,12
+      

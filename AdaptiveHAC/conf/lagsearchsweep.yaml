@@ -11,7 +11,7 @@ lag_search_th: 0.5
 root: ${hydra:runtime.cwd}
 data_path: ${hydra:runtime.cwd}/test/data/
 PT_config_path: ${hydra:runtime.cwd}/pointTransformer/config/
-experiment_folder: 'test/paramsweep/'
+experiment_folder: 'test/lagsearchsweep/'
 
 hydra:
   job:

@@ -15,7 +15,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 path=os.getcwd()
 logger = logging.getLogger(__name__)
 
-def test(args, model, fusion, TEST_PC):
+def test(args, model, args_fusion, TEST_PC):
     with torch.no_grad():
         if isinstance(model, str):
             # import model from directory
@@ -79,6 +79,7 @@ def test(args, model, fusion, TEST_PC):
         seg_length_all      = [seg_length_temp[i*(nr_nodes):(i+1)*(nr_nodes)] for i in range(int(len(true)/nr_nodes))]  
         
         # do all fusion
+        scores = []
         for fusion in ["none", "softmax", "majvote"]:
             y_pred_all = []
             y_true_all = []
@@ -120,6 +121,8 @@ def test(args, model, fusion, TEST_PC):
                 plt.title("Fused" if fusion != "none" else f"Node: {i}")
                 plt.savefig(os.path.join(args.experiment_folder + "/" + fusion + "/conf_matrix_fused.jpg") if fusion != "none" 
                             else os.path.join(args.experiment_folder + "/" + fusion + f"/conf_matrix_node_{i}.jpg"), bbox_inches='tight')
+            
+            scores.append([F1_scores, acc, balanced_acc])
                 
             # save data    
             np.save(os.path.join(args.experiment_folder + "/" + fusion + '/test_pred.npy'), y_pred_all)
@@ -140,6 +143,13 @@ def test(args, model, fusion, TEST_PC):
             np.savetxt(os.path.join(args.experiment_folder + "/" + fusion + '/Accuracy.txt'), np.asarray(acc), fmt='%1.5f', delimiter=',', newline='\n')
             np.savetxt(os.path.join(args.experiment_folder + "/" + fusion + '/Balanced_accuracy.txt'), np.asarray(balanced_acc), fmt='%1.5f', delimiter=',', newline='\n')
     torch.cuda.empty_cache()
+    
+    if args_fusion == "none":
+        F1_scores, acc, balanced_acc = scores[0] # unpack no fusion
+    elif args_fusion == "softmax":
+        F1_scores, acc, balanced_acc = scores[1] # unpack softmax fusion
+    elif args_fusion == "majvote":
+        F1_scores, acc, balanced_acc = scores[2] # unpack majority vote fusion    
     return F1_scores, acc, balanced_acc
 
     

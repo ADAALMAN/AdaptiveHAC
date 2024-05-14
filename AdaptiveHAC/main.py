@@ -36,6 +36,7 @@ def process_wrapper(args_file):
         
 @hydra.main(config_path="conf", config_name="paramsweep", version_base='1.3')
 def main(cfg):
+    os.mkdir(os.path.join("./entropy"))
     omegaconf.OmegaConf.set_struct(cfg, False)
     data_path = hydra.utils.to_absolute_path(cfg.data_path)
     cfg.PT_config_path = hydra.utils.to_absolute_path(cfg.PT_config_path)
@@ -55,7 +56,7 @@ def main(cfg):
         batch_size = mp.cpu_count()-4
         logger.info(f"Total files: {total_files}, processing batch size: {batch_size}")
         for i in tqdm(range(0, total_files, batch_size), total=int(np.ceil(total_files/batch_size))):
-            with mp.Pool(processes=mp.cpu_count()) as pool:
+            with mp.Pool(processes=mp.cpu_count()-2) as pool:
                 for result in pool.imap(process_wrapper, files_with_args[i:i+batch_size]):
                     PC_dataset.extend(result)
         
@@ -82,12 +83,14 @@ def main(cfg):
 if __name__ == '__main__':
     plt.close("all")
     main()
-    """ i=8
+    """ i="SegCustomLossWith10Test"
+    cwd = f"./test/paramsweep/2024-05-02/19-23-41/{i}"
     args = load_PT_config('./pointTransformer/config')
-    model = f"./test/paramsweep/2024-04-29/15-37-23/{i}/best_model.pth"
+    model = f"{cwd}/best_model.pth"
     fusion = 'softmax'
-    with open(f'./test/paramsweep/2024-04-29/15-37-23/{i}/TEST_PC.pkl', 'rb') as file:
+    with open(f'{cwd}/TEST_PC.pkl', 'rb') as file:
             TEST_PC = pickle.load(file)
     args.input_dim = TEST_PC[0][0].data.shape[1]
+    args.experiment_folder = cwd
     F1_scores, acc, balanced_acc = point_transformer.test(args, model, fusion, TEST_PC)
     print(F1_scores, acc, balanced_acc) """

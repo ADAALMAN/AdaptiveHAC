@@ -48,13 +48,13 @@ def process(args, file_name):
             else:
                 samples, labels, H_avg_score, entropy, PBC = segmentation.segmentation(data, lbl, eng, args)
             samples, labels = segmentation.segmentation_thresholding(samples, labels, seg_th, "split")
+            pd.DataFrame(entropy).to_csv(os.path.join(f'./entropy/{file_name}_entropy.csv'), index=False) 
         case "GTsegmentation":
             seg_th = 100
             H_avg_score = "NA"
             samples, labels, = segmentation.GTsegmentation(data, lbl)
             samples, labels = segmentation.segmentation_thresholding(samples, labels, seg_th, "split")
             
-    pd.DataFrame(entropy).to_csv(os.path.join(f'./entropy/{file_name}_entropy.csv'), index=False)       
     data_len = data.shape[1]  
     del data, lbl
     gc.collect()

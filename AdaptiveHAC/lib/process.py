@@ -4,6 +4,7 @@ from AdaptiveHAC.lib import load_data
 from AdaptiveHAC.segmentation import segmentation
 from AdaptiveHAC.processing import PC_processing
 import matlab.engine
+import pandas as pd
 logger = logging.getLogger(__name__) 
 
 def init_matlab(root):
@@ -53,6 +54,7 @@ def process(args, file_name):
             samples, labels, = segmentation.GTsegmentation(data, lbl)
             samples, labels = segmentation.segmentation_thresholding(samples, labels, seg_th, "split")
             
+    pd.DataFrame(entropy).to_csv(os.path.join(f'./entropy/{file_name}_entropy.csv'), index=False)       
     data_len = data.shape[1]  
     del data, lbl
     gc.collect()

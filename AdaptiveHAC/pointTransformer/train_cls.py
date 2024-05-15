@@ -22,8 +22,8 @@ path=os.getcwd()
 # dataset = 'MMA_xyzI'
 def sanitiser(dataset):
     for PC in dataset:
-            PC.data[np.isinf(PC.data)] = 0
-            PC.data[np.isneginf(PC.data)] = 1
+            PC.data[np.isinf(PC.data)] = 1
+            PC.data[np.isneginf(PC.data)] = 0
             PC.data[np.isin(np.asarray(PC.data), np.nan)] = 0
     
     return dataset

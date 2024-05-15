@@ -4,7 +4,7 @@ sample_method: segmentation
 node_method: all
 subsegmentation: fixed-amount
 features: [none]
-fusion: none
+fusion: softmax
 subsegparam: default
 lag_search_th: 0.3
 

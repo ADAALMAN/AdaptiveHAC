@@ -132,16 +132,32 @@ def main(args):
     
     match args.loss_function:
         case "Custom": 
+            weights = []
+            # weights options
+            weight_option = 1
+            match weight_option:
+                case 1: # untested
+                    for j in range(0, 9, 1):
+                        weights.append(1/(mean_label_class[j]))
+                    weights = np.asarray(weights)/sum(weights)
+                case 2: # good result but does not always work
+                    for j in range(0, 9, 1):
+                        weights.append(1/(mean_label_class[j]))
+                case 3: # untested
+                    for j in range(0, 9, 1):
+                        weights.append(1/(mean_label_class[j]/sum(mean_label_class)))
+            
+
             criterion = torch.nn.CrossEntropyLoss(torch.FloatTensor([0,
-                                                                    1/mean_label_class[0],
-                                                                    1/mean_label_class[1],
-                                                                    1/mean_label_class[2],
-                                                                    1/mean_label_class[3],
-                                                                    1/mean_label_class[4],
-                                                                    1/mean_label_class[5],
-                                                                    1/mean_label_class[6],
-                                                                    1/mean_label_class[7],
-                                                                    1/mean_label_class[8]]).to(device))
+                                                                    1/weights[0],
+                                                                    1/weights[1],
+                                                                    1/weights[2],
+                                                                    1/weights[3],
+                                                                    1/weights[4],
+                                                                    1/weights[5],
+                                                                    1/weights[6],
+                                                                    1/weights[7],
+                                                                    1/weights[8]]).to(device))
         case "Default":
             criterion = torch.nn.CrossEntropyLoss(torch.FloatTensor([0,1,1,1,1,1,1,1,1,1]).to(device))
     

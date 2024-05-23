@@ -26,7 +26,7 @@ def sanitiser(dataset):
     for PC in dataset:
             PC.data[np.isinf(PC.data)] = 1
             PC.data[np.isneginf(PC.data)] = 0
-            PC.data[np.isin(np.asarray(PC.data), np.nan)] = 0
+            PC.data[np.isnan(PC.data)] = 0
     
     return dataset
             
@@ -306,7 +306,7 @@ if __name__ == '__main__':
     os.makedirs(os.path.abspath(args.hydra.run.dir))
     os.chdir(os.path.abspath(args.hydra.run.dir))
     #path = "../test"
-    path = "C:/Users/adaal/OneDrive - Delft University of Technology/Internship HAC/Results/ExtraRuns/GTsegCL3"
+    path = "C:/Users/adaal/OneDrive - Delft University of Technology/Internship HAC/Results/ExtraRuns/lagsearchTH03CustomLoss"
     with open(f'{path}/Processed_data.pkl', 'rb') as file:
         PC_dataset = pickle.load(file)
     main([args, PC_dataset])

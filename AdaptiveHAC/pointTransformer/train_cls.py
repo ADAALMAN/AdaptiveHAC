@@ -16,6 +16,8 @@ import omegaconf
 import matplotlib.pyplot as plt
 import pickle
 from sklearn.model_selection import train_test_split
+import yaml
+import argparse
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 path=os.getcwd()
@@ -49,7 +51,6 @@ def validate(model, loader, num_class): #num_class should change !!!
     instance_acc = np.mean(mean_correct)
     return instance_acc, class_acc
 
-#@hydra.main(config_path='config', config_name='cls', version_base='1.1')
 def main(args):
     if isinstance(args, list):
         PC = args[1]
@@ -123,9 +124,13 @@ def main(args):
     testDataLoader = torch.utils.data.DataLoader(TEST_DATASET, batch_size=args.batch_size, shuffle=False, num_workers=4)
 
     '''MODEL LOADING'''
-    shutil.copy(hydra.utils.to_absolute_path('pointTransformer/models/{}/model.py'.format(args.model.name)), '.')
-
-    classifier = getattr(importlib.import_module('pointTransformer.models.{}.model'.format(args.model.name)), 'PointTransformerCls')(args)
+    if os.path.exists(hydra.utils.to_absolute_path('pointTransformer/models/{}/model.py'.format(args.model.name))): # for running with processing
+        shutil.copy(hydra.utils.to_absolute_path('pointTransformer/models/{}/model.py'.format(args.model.name)), '.')
+        classifier = getattr(importlib.import_module('pointTransformer.models.{}.model'.format(args.model.name)), 'PointTransformerCls')(args)
+    elif os.path.exists(os.path.abspath('../../../../pointTransformer/models/{}/model.py'.format(args.model.name))): # for only training
+        shutil.copy(os.path.abspath('../../../../pointTransformer/models/{}/model.py'.format(args.model.name)), '.')
+        classifier = getattr(importlib.import_module('models.{}.model'.format(args.model.name)), 'PointTransformerCls')(args)
+    
     if torch.cuda.device_count() > 1:
         classifier = torch.nn.DataParallel(classifier)
     classifier = classifier.to(device)
@@ -292,4 +297,16 @@ def main(args):
     return TEST_PC, classifier.eval()
     
 if __name__ == '__main__':
-    main()
+    hydra.initialize(config_path="config", version_base='1.3')
+    args = hydra.compose(config_name='cls', return_hydra_config=True)
+    omegaconf.OmegaConf.set_struct(args, False)
+    args.model = args._group_
+    args.pop('_group_')
+    
+    os.makedirs(os.path.abspath(args.hydra.run.dir))
+    os.chdir(os.path.abspath(args.hydra.run.dir))
+    #path = "../test"
+    path = "C:/Users/adaal/OneDrive - Delft University of Technology/Internship HAC/Results/ExtraRuns/GTsegCL3"
+    with open(f'{path}/Processed_data.pkl', 'rb') as file:
+        PC_dataset = pickle.load(file)
+    main([args, PC_dataset])

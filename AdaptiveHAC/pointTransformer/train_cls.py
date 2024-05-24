@@ -16,6 +16,7 @@ import omegaconf
 import matplotlib.pyplot as plt
 import pickle
 from sklearn.model_selection import train_test_split
+from sklearn import metrics
 from AdaptiveHAC.pointTransformer import point_transformer
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -33,7 +34,7 @@ def validate(model, loader, num_class): #num_class should change !!!
     mean_correct = []
     class_acc = np.zeros((num_class,3))
     for j, data in tqdm(enumerate(loader), total=len(loader)):
-        points, target, _, _, _, _, _ = data
+        points, target, _, _, _, _, _, _ = data
         target = target[:, 0]
         points, target = points.to(device), target.to(device)
         classifier = model.eval()
@@ -139,7 +140,7 @@ def main(args):
         case "Custom": 
             weights = []
             # weights options
-            weight_option = 1
+            weight_option = 2
             match weight_option:
                 case 1: # untested
                     for j in range(0, 9, 1):
@@ -154,15 +155,15 @@ def main(args):
             
 
             criterion = torch.nn.CrossEntropyLoss(torch.FloatTensor([0,
-                                                                    1/weights[0],
-                                                                    1/weights[1],
-                                                                    1/weights[2],
-                                                                    1/weights[3],
-                                                                    1/weights[4],
-                                                                    1/weights[5],
-                                                                    1/weights[6],
-                                                                    1/weights[7],
-                                                                    1/weights[8]]).to(device))
+                                                                    weights[0],
+                                                                    weights[1],
+                                                                    weights[2],
+                                                                    weights[3],
+                                                                    weights[4],
+                                                                    weights[5],
+                                                                    weights[6],
+                                                                    weights[7],
+                                                                    weights[8]]).to(device))
         case "Default":
             criterion = torch.nn.CrossEntropyLoss(torch.FloatTensor([0,1,1,1,1,1,1,1,1,1]).to(device))
     
@@ -206,7 +207,7 @@ def main(args):
         logger.info('Epoch %d (%d/%s):' % (global_epoch + 1, epoch + 1, args.epoch))
         classifier.train()
         for batch_id, data in tqdm(enumerate(trainDataLoader, 0), total=len(trainDataLoader), smoothing=0.9):
-            points, target, _, _, _, _, _ = data
+            points, target, _, _, _, _, _, _ = data
             points = points.data.numpy()
             points = provider.random_point_dropout(points)
             points[:,:, 0:3] = provider.random_scale_point_cloud(points[:,:, 0:3])
@@ -309,7 +310,7 @@ if __name__ == '__main__':
     os.makedirs(os.path.abspath(args.hydra.run.dir))
     os.chdir(os.path.abspath(args.hydra.run.dir))
     #path = "../test"
-    path = "C:/Users/adaal/OneDrive - Delft University of Technology/Internship HAC/Results/ExtraRuns/lagsearchTH03CustomLoss"
+    path = "C:/Users/adaal/OneDrive - Delft University of Technology/Internship HAC/Results/ExtraRuns/lagsearchTH03CustomLoss_2"
     with open(f'{path}/Processed_data.pkl', 'rb') as file:
         PC_dataset = pickle.load(file)
     TEST_PC, model = main([args, PC_dataset])

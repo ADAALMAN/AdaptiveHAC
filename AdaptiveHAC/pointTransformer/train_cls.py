@@ -16,8 +16,7 @@ import omegaconf
 import matplotlib.pyplot as plt
 import pickle
 from sklearn.model_selection import train_test_split
-import yaml
-import argparse
+from AdaptiveHAC.pointTransformer import point_transformer
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 path=os.getcwd()
@@ -71,6 +70,7 @@ def main(args):
     '''HYPER PARAMETER'''
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
     logger = logging.getLogger(__name__)
+    logging.basicConfig()
 
     '''DATA LOADING'''
     logger.info('Load dataset ...')
@@ -303,10 +303,20 @@ if __name__ == '__main__':
     args.model = args._group_
     args.pop('_group_')
     
+    logger = logging.getLogger(__name__)
+    logging.basicConfig()
+    
     os.makedirs(os.path.abspath(args.hydra.run.dir))
     os.chdir(os.path.abspath(args.hydra.run.dir))
     #path = "../test"
     path = "C:/Users/adaal/OneDrive - Delft University of Technology/Internship HAC/Results/ExtraRuns/lagsearchTH03CustomLoss"
     with open(f'{path}/Processed_data.pkl', 'rb') as file:
         PC_dataset = pickle.load(file)
-    main([args, PC_dataset])
+    TEST_PC, model = main([args, PC_dataset])
+    logger.info("Testing on dataset...")
+    F1_scores, acc, balanced_acc = point_transformer.test(args, model, 'softmax', TEST_PC)
+        
+    if 'softmax' != "none":
+        logger.info(f"Fused: F1 score: {F1_scores}, accuracy: {acc}, balanced accuracy: {balanced_acc}")
+    else: 
+        logger.info("\n".join([f"Node {i}: F1 score: {F1_scores[i]}, accuracy: {acc[i]}, balanced accuracy: {balanced_acc[i]}" for i in range(len(F1_scores))]))

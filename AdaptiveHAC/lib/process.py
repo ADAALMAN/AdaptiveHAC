@@ -108,14 +108,14 @@ def process(args, file_name):
                 samples_PC = PC_processing.PC_generation(samples, args.subsegmentation, param, npoints, thr, features, labels, eng)  
                 
     if isinstance(args.node_method, int):
-        for PC in samples_PC:
-            PC.add_attributes(file_name, H_avg_score)
+        for index, PC in enumerate(samples_PC):
+            PC.add_attributes(file_name, index, H_avg_score)
     else:
-        for PC in samples_PC:
+        for index, PC in enumerate(samples_PC):
             for node in PC:
-                node.add_attributes(file_name, H_avg_score)
+                node.add_attributes(file_name, index, H_avg_score)
     
-    eng.quit()      
+    eng.quit()
     del samples, labels
     gc.collect()
     return samples_PC

@@ -81,7 +81,7 @@ class PCModelNetDataLoader(Dataset):
             cls = self.PC[index].mean_label
             cls = torch.from_numpy(np.array([cls]).astype(np.int32)) 
             point_set = torch.from_numpy(self.PC[index].data[:,:].astype(np.float32))
-            return point_set, cls, self.PC[index].sequence_name, self.PC[index].H_score, self.PC[index].per_labels, self.PC[index].per_mean_label, self.PC[index].segment_length
+            return point_set, cls, self.PC[index].sequence_name, self.PC[index].H_score, self.PC[index].per_labels, self.PC[index].per_mean_label, self.PC[index].segment_length, self.PC[index].index
     
 class SeqModelNetDataLoader(Dataset):
     def __init__(self, root):

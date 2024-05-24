@@ -5,6 +5,7 @@ from scipy import stats
 class PointCloud:
     def __init__(self, data:np.ndarray, label:np.ndarray):
         self.sequence_name = None
+        self.index = None
         self.H_score = None
         self.total_time = 1
         self.activities = ["N/A", "Walking", "Stationary", "Sitting down","Standing up (sitting)",
@@ -61,6 +62,7 @@ class PointCloud:
         ax.set_title(self.activities[self.mean_label])
         plt.show()
     
-    def add_attributes(self, name, H_score):
+    def add_attributes(self, name, index, H_score):
         self.sequence_name = name
+        self.index = index
         self.H_score = H_score

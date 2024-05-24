@@ -49,8 +49,9 @@ def test(args, model, args_fusion, TEST_PC):
         per_labels_temp = []
         per_mean_label_temp = []
         seg_length_temp = []
+        seg_index_temp = []
         for j, data in tqdm(enumerate(testDataLoader, 0), total=len(testDataLoader), smoothing=0.9):
-            points, target, sequence_name, H_score, per_labels, per_mean_label, seg_length = data
+            points, target, sequence_name, H_score, per_labels, per_mean_label, seg_length, seg_index = data
             target = target[:, 0]
             points, target = points.to(device), target.to(device)
             true.extend(target)
@@ -60,7 +61,8 @@ def test(args, model, args_fusion, TEST_PC):
             per_labels_temp.extend(per_labels)
             per_mean_label_temp.extend(per_mean_label)
             seg_length_temp.extend(seg_length)
-        
+            seg_index_temp.extend(seg_index)
+            
         for dataset in TEST_PC:
             if isinstance(dataset, PointCloud):
                 activities = dataset.activities
@@ -77,6 +79,7 @@ def test(args, model, args_fusion, TEST_PC):
         per_labels_all      = [per_labels_temp[i*(nr_nodes):(i+1)*(nr_nodes)] for i in range(int(len(true)/nr_nodes))]  
         per_mean_label_all  = [per_mean_label_temp[i*(nr_nodes):(i+1)*(nr_nodes)] for i in range(int(len(true)/nr_nodes))]  
         seg_length_all      = [seg_length_temp[i*(nr_nodes):(i+1)*(nr_nodes)] for i in range(int(len(true)/nr_nodes))]  
+        seg_index_all       = [seg_index_temp[i*(nr_nodes):(i+1)*(nr_nodes)] for i in range(int(len(true)/nr_nodes))]  
         
         # do all fusion
         scores = []
@@ -139,6 +142,7 @@ def test(args, model, args_fusion, TEST_PC):
             pd.DataFrame(np.asarray(per_labels_all)[:,:,0]).to_csv(os.path.join(args.experiment_folder + "/" + fusion + '/per_labels.csv'), index=False)
             pd.DataFrame(np.asarray(per_mean_label_all)[:,np.newaxis][:,0]).to_csv(os.path.join(args.experiment_folder + "/" + fusion + '/per_mean_label.csv'), index=False)
             pd.DataFrame(np.asarray(seg_length_all)[:,np.newaxis][:,0]).to_csv(os.path.join(args.experiment_folder + "/" + fusion + '/seg_length.csv'), index=False)
+            pd.DataFrame(np.asarray(seg_index_all)[:,np.newaxis][:,0]).to_csv(os.path.join(args.experiment_folder + "/" + fusion + '/seg_index.csv'), index=False)
             np.savetxt(os.path.join(args.experiment_folder + "/" + fusion + '/F1.txt'), np.asarray(F1_scores), fmt='%1.5f', delimiter=',', newline='\n')
             np.savetxt(os.path.join(args.experiment_folder + "/" + fusion + '/Accuracy.txt'), np.asarray(acc), fmt='%1.5f', delimiter=',', newline='\n')
             np.savetxt(os.path.join(args.experiment_folder + "/" + fusion + '/Balanced_accuracy.txt'), np.asarray(balanced_acc), fmt='%1.5f', delimiter=',', newline='\n')

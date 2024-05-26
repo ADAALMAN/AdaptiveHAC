@@ -78,7 +78,7 @@ def main(args):
             
     if PC != None:
         if PC_type == "single_node":
-            TRAIN_PC, TEST_PC = train_test_split(PC, train_size=0.8, shuffle=True)
+            TRAIN_PC, TEST_PC = train_test_split(PC, train_size=0.8, shuffle=True, random_state=1)
             TRAIN_DATASET = PCModelNetDataLoader(PC=TRAIN_PC, npoint=args.num_point)
             TEST_DATASET = PCModelNetDataLoader(PC=TEST_PC, npoint=args.num_point)
             mean_label_class  = []
@@ -142,17 +142,20 @@ def main(args):
             # weights options
             weight_option = 2
             match weight_option:
-                case 1: # untested
+                case 1: # good result
                     for j in range(0, 9, 1):
                         weights.append(1/(mean_label_class[j]))
                     weights = np.asarray(weights)/sum(weights)
-                case 2: # good result but does not always work
+                case 2: # good result
                     for j in range(0, 9, 1):
                         weights.append(1/(mean_label_class[j]))
-                case 3: # untested
+                case 3: # good result
                     for j in range(0, 9, 1):
                         weights.append(1/(mean_label_class[j]/sum(mean_label_class)))
-            
+                case 4: 
+                    for j in range(0, 9, 1):
+                        weights.append((1/(mean_label_class[j]))**2)
+                    weights = np.array(weights)/sum(weights)
 
             criterion = torch.nn.CrossEntropyLoss(torch.FloatTensor([0,
                                                                     weights[0],

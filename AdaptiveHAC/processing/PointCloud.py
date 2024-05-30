@@ -52,7 +52,7 @@ class PointCloud:
             temp_data[:, 5] = temp_data[:, 5]/1e6
         self.data = temp_data 
       
-    def visualise(self):   
+    """ def visualise(self):   
         fig = plt.figure()
         ax = fig.add_subplot(projection='3d')
         ax.scatter(self.data[:,0], self.data[:,1], self.data[:,2])

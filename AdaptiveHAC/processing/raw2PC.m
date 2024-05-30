@@ -1,4 +1,4 @@
-function [PC] = raw2PC(raw, subsegmentation, param, npoints, thr, features, options,cfg)
+function [PC] = raw2PC(raw, subsegmentation, param, npoints, thr, time_feature, options,cfg)
 %RAW2PC Convert a raw data (range-time) segment to a point cloud
 %representation
 %   [PC] = raw2PC(RAW, CHUNKS, NPOINTS) Takes input
@@ -11,8 +11,8 @@ arguments
     param (1,1) = 6
     npoints (1,1) = 1024
     thr (1,1) = 0.8
-    features = []
-    options.normalisation = true
+    time_feature = []
+    options.normalisation = false
     options.nodeProcessing {mustBeNumericOrLogical} = 0
     options.vIselection = 0
     options.rangeGate {mustBeNumericOrLogical} = 100
@@ -26,6 +26,7 @@ end
 PC_raw = [];
 
 for iNode = 1:1:size(raw,3)
+    %% Make subsegments (indices) based on a fixed amount or length
     if strcmp(subsegmentation, "fixed-amount")
         chunks = param;
         split_idx = int32([1:size(raw,2)/chunks:size(raw,2),size(raw,2)]);      % We split the raw segment into CHUNKS subsegments
@@ -41,7 +42,8 @@ for iNode = 1:1:size(raw,3)
     end
     
     for ch = 1:length(split_idx)-1
-        dat_split{ch}=raw(:,split_idx(ch):split_idx(ch+1),iNode);           
+        %% Split data and generate RD-maps with FFT
+        dat_split{ch}=raw(:,split_idx(ch):split_idx(ch+1),iNode);
         if nnz(dat_split{ch})==0; continue; end
         dat_FFT{ch} = db(fftshift(fft(dat_split{ch},[],2),2));              % We take the FFT to create range-Doppler (RD) representations
         f_array = linspace(-cfg.PRF/2,cfg.PRF/2,size(dat_FFT{ch},2))';
@@ -60,11 +62,19 @@ for iNode = 1:1:size(raw,3)
         [x,idx]=sort([s.Area],"descend"); s=s(idx);
         if numel(s)>=3; y = vertcat(s(1:3).PixelList); elseif numel(s)==0; continue;  else; y = vertcat(s(1:end).PixelList); end
         v = f_array(y(:,1)); r = y(:,2);
-        t = ones([size(y,1),1]).*ch;
+        if strcmp(time_feature, "sequence-based")
+            t_size = 1;
+            for i = 1:1:ch
+                t_size = t_size + (size(dat_split{i}, 2)-1);
+            end
+            t = ones([size(y,1),1]).*t_size;
+        else
+            t = ones([size(y,1),1]).*ch;
+        end
         NodeNo = ones([size(y,1),1])*iNode;
         P = dat_FFT{ch}(sub2ind(size(dat_FFT{ch}),y(:,2),y(:,1)));
         PC_raw = [[PC_raw];[r,v,t,P,NodeNo]];                               % The point cloud PC has for each point the variables range, doppler, time, intensity, and the node number
-    end
+    end 
 end
 if npoints <= size(PC_raw,1); PC_raw = PC_raw(round(linspace(1,size(PC_raw,1),npoints)),:); 
 else

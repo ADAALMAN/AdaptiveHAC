@@ -1,5 +1,5 @@
-batch_size: 32
-epoch: 2
+batch_size: 200
+epoch: 50
 learning_rate: 0.00055244
 step_size: 5
 gama: 0.6
@@ -10,6 +10,7 @@ weight_decay: 1e-5
 normal: False
 sequential: True
 num_class: 10
+loss_function: Custom #or Default
 experiment_folder: 'test/'
 dataset: ${experiment_folder}data/
 input_dim: 4
@@ -22,8 +23,8 @@ hydra:
     chdir: True
 
   run:
-    dir: ${experiment_folder}log/
+    dir: ../${experiment_folder}train_only/${now:%Y-%m-%d}/${now:%H-%M-%S}
 
   sweep:
-    dir: ${experiment_folder}log/cls
+    dir: ../${experiment_folder}train_only/${now:%Y-%m-%d}/${now:%H-%M-%S}
     subdir: ${model.name}

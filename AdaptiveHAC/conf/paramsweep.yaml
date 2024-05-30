@@ -4,7 +4,9 @@ sample_method: segmentation
 node_method: all
 subsegmentation: fixed-amount
 features: [none]
-fusion: none
+fusion: softmax
+subsegparam: default
+lag_search_th: 0.3
 
 root: ${hydra:runtime.cwd}
 data_path: ${hydra:runtime.cwd}/test/data/
@@ -23,6 +25,5 @@ hydra:
     params:
       sample_method: windowing,segmentation
       node_method: all,0 # the numbers are the nodes (0-4)
-      fusion: none, softmax
       subsegmentation: fixed-amount,fixed-length
       

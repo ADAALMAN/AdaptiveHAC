@@ -25,5 +25,4 @@ for kk = 1:size(data_raw,3)
     data_FFT(:,:,kk) = fft(data_raw(:,:,kk));
     [S_M2(:,:,kk), f, t, data_FFT_power(:,:,kk)] = spectrogram(detrend(data_FFT(centerbin,:,kk),2),hann(window_size),window_overlap,nfft,sample_rate,'yaxis','centered','MinThreshold',min_thres);
 end
-toc
 end

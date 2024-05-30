@@ -1,16 +1,7 @@
-from types import NoneType
 import matlab.engine
 import numpy as np
-import os, sys
+import os
 from AdaptiveHAC.processing import PointCloud
-from AdaptiveHAC.lib import timing_decorator
-
-def init_matlab(root):
-    # initialize matlab
-    os.environ['HYDRA_FULL_ERROR'] = '1'
-    eng = matlab.engine.start_matlab()
-    eng.addpath(f'{root}/processing')
-    return eng
 
 def save_PC_txt(dir, PC, labels):
     activities = ['na','wlk','stat','sitdn','stupsit','bfrsit','bfrstand','ffw','stup','ffs']
@@ -80,20 +71,27 @@ def PC_generation(samples, subsegmentation, param, npoints, thr, features, label
                                                             matlab.double(param), 
                                                             matlab.double(npoints), 
                                                             matlab.double(thr),
-                                                            (features["time"][:] if ("time" in features.keys()) else "standard"))), # cant use i
+                                                            (features["time"][0] if ("time" in features.keys()) else "standard"))), # cant use i
                                        label) # point cloud generation
             
-            if not features == False:
+            if not not features:
                 ft = []
                 for key in features.keys():
                     if key != "time":
                         ft.append(features[key][i])
-                PC.add_features(ft)
+                PC.features = [i for i in features.keys()]
+                PC.add_features(ft, features["time"] if ("time" in features.keys()) else None)
                 
             PC.normalise()
             #PC.visualise()
-            node_PC.append(PC)
-        samples_PC.append(node_PC)
+            if PC.mean_label == 0: # filter out all N/A pointclouds
+                continue
+            else:
+                node_PC.append(PC)
+        if len(node_PC) == 0: # to prevent adding emty lists
+            continue
+        else:
+            samples_PC.append(node_PC)
     return samples_PC
 
 def SNPC_generation(samples, subsegmentation, param, npoints, thr, features, labels, eng):
@@ -112,11 +110,14 @@ def SNPC_generation(samples, subsegmentation, param, npoints, thr, features, lab
             ft = []
             for key in features.keys():
                 if key != "time":
-                    ft.append(features[key][i])
-            PC.add_features(ft)
+                    ft.append(features[key])
+            PC.add_features(ft, features["time"] if ("time" in features.keys()) else None)
                 
         #PC.visualise()
-        samples_PC.append(PC)
+        if PC.mean_label == 0: # filter out all N/A pointclouds
+            continue
+        else:
+            samples_PC.append(PC)
     return samples_PC
 
 #eng.eval("dbstop in raw2PC at 10", nargout=0)

@@ -3,15 +3,15 @@ defaults:
 sample_method: segmentation
 node_method: all
 subsegmentation: fixed-amount
-features: [entropy, PBC, time]
+features: [none]
 fusion: softmax
 subsegparam: default
-lag_search_th: 0.3
+lag_search_th: 0.5
 
 root: ${hydra:runtime.cwd}
 data_path: ${hydra:runtime.cwd}/test/data/
 PT_config_path: ${hydra:runtime.cwd}/pointTransformer/config/
-experiment_folder: 'test/featuresweep/'
+experiment_folder: 'test/lagsearchsweep/'
 
 hydra:
   job:
@@ -23,4 +23,5 @@ hydra:
     subdir: ${hydra.job.num}
   sweeper:
     params:
-      features: "[entropy, PBC, time], [entropy], [PBC], [time], [entropy, PBC], [entropy, time], [PBC, time]"
+      subsegparam: 1,2,3,4,5,6,7,8,9,10,11,12
+      
